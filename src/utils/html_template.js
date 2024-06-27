@@ -1,14 +1,4 @@
-let args = [
-    '--no-sandbox',
-    '--disable-setuid-sandbox',
-  ];
-
-
-let options = {
-      format: 'A5',
-      printBackground: true,
-      preferCSSPageSize: true
-    };
+//  JS file for html PDF template
 
 const html_template = `
 <!DOCTYPE html>
@@ -58,15 +48,16 @@ const html_template = `
     
             .qr-code {
                 display: flex;
+                flex-direction: column;
                 justify-content: start;
-                margin-top: -3rem;
+                margin-top: -2.8rem;
                 margin-left: 1rem;
             }
     
             .name-participant-section {
                 /* background: red; */
                 margin-top: 22rem;
-                margin-left: 23rem;
+                margin-left: 22rem;
                 /* border: #28348A solid; */
                 max-width: 50%;
             }
@@ -111,23 +102,37 @@ const html_template = `
             .hash-style:active {
                 color: #28348A; /* Color del enlace al hacer clic */
             }
+            .pill {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: auto;
+                margin-top: 35px;
+                height: 40px;
+                background: #04AA6D;
+                border-radius: 999em 999em 999em 40px;
+                
+            }
         </style>
 </head>
 
 <body style="margin: 0">
     
     <div class="page-background"></div>
-    <div id="bodydiv">
-        <div class="name-participant-section">
-            <h1 class="participant-name"><strong>{{name}}</strong></h1>
-            <p>Por haber aprobado el curso {{course}}: {{description}}.</p>
-            <p class="course-name"><strong>{{course2}}</strong></p>
-            <p><strong>Fecha:</strong> {{issuedAt}}</p>
-            <p><strong>Transaction Hash:</strong></p>
-            <a href="{{url-hash}}" class="hash-style">{{transactionHash}}</a>
+        <div id="bodydiv">
+            <div class="name-participant-section">
+                <h1 class="participant-name"><strong>{{name}}</strong></h1>
+                <p class=".playball-regular">Por haber aprobado el curso <strong>{{course}}</strong>: {{description}}.</p>
+                <!-- <p class="course-name"><strong>{{course2}}</strong></p> -->
+                <p class=".playball-regular">Emitido el {{issuedAt}}</p>
+                <p class=".playball-regular"><strong>Transaction Hash:</strong></p>
+                <a href="https://console.cloudinary.com/console/c-dbe373d6f0e0210e4726b1a020abd8/media_library/folders/c82b480d1a892b94ed34f5d4ade8efb553?view_mode=mosaic" class="hash-style">0xeeeb180c9788e1758bb3af0f152d683ba6ccc40053dc0a27519f24f0649729</a>
+                <div class="pill">
+                    <p class=".playball-regular" style="font-size: small;color: white;"><strong>Certificado NFT registrado en la Blockchain</strong></p>  
+                </div>
         </div>
         <div class="qr-code">
-            <img style="max-width: 80px; border: white solid 5px;border-radius: 5%;" src="data:image/png;base64,{{transactionHashQRBase64}}" alt="Transaction Hash QR Code">
+            <img style="max-width: 75px; border: white solid 5px;border-radius: 5%;" src="data:image/png;base64,{{transactionHashQRBase64}}" alt="Transaction Hash QR Code">
         </div>
     </div>
 </body>
