@@ -2,6 +2,7 @@ const pool = require('../resources/db');
 const fs = require('fs-extra');
 const generateCertificatePDF = require('../utils/generateCertificatePDF');
 require("dotenv").config();
+const path = require('path');
 
 const academicAddress = process.env.CONTRACT_ADDRESS_ACADEMIC_ISTER;
 
@@ -34,7 +35,9 @@ exports.issueCertificate = async (req, res) => {
         const pdfBuffer = await generateCertificatePDF(name, documentIdentification, course, description, humanReadableTimestamp, tokenId, receipt.transactionHash, academicAddress);
         
         const pdfFileName = `certificate_${name}-${tokenId}-${timestamp}.pdf`;
-        const filePath = `./certificatesInPDF/${pdfFileName}`; 
+        // const filePath = `./certificatesInPDF/${pdfFileName}`; 
+        // New absolute path
+        const filePath = path.join(__dirname, '..', 'certificatesInPDF', pdfFileName); 
         await fs.writeFile(filePath, pdfBuffer);
     
         responseHandler.success(res, {

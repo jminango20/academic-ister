@@ -3,51 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            padding: 50px;
-        }
-        .certificate-title {
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-        .logo {
-            display: block;
-            margin: 0 auto;
-            width: 200px; 
-            height: auto; 
-            margin-bottom: 20px;
-        }
-        .details {
-            margin-top: 30px;
-            font-size: 14px;
-        }
-        .qr-code {
-            margin-top: 20px;
-            display: block;
-            text-align: center;
-        }
-    </style>
-    <title>Academic Certificate</title>
+    <title>Web Certificate</title>
+    <link rel="stylesheet" href="styles.css">
+
+
+    <!-- fonts -->
+    <!-- Name Certificate -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playball&display=swap" rel="stylesheet">
+    <!-- Text -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Playball&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="certificate-title">Academic Certificate</div>
-    <img class="logo" src="data:image/jpeg;base64,{{Logo}}" alt="Institution Logo">
-    <div class="details">
-        <p><strong>Name:</strong> {{name}}</p>
-        <p><strong>Document Identification:</strong> {{documentIdentification}}</p>
-        <p><strong>Course:</strong> {{course}}</p>
-        <p><strong>Description:</strong> {{description}}</p>
-        <p><strong>Issued At:</strong> {{issuedAt}}</p>
-        <p><strong>Token ID:</strong> {{tokenId}}</p>
+    <body>
+        <div class="container" 
+        style="background-image: url('{{background-img}}');
+        background-size: cover;
+        background-position: top;
+        background-repeat: no-repeat;"
+    >
+    <div class="name-participant-section">
+        <h1 class="participant-name"><strong>{{name}}</strong></h1>
+        <p>Por haber aprobado el curso {{course}}: {{description}}.</p>
+        <p class="course-name"><strong>{{course2}}</strong></p>
+        <p><strong>Fecha: {{issuedAt}}</strong></p>
         <p><strong>Transaction Hash:</strong> {{transactionHash}}</p>
     </div>
     <div class="qr-code">
-        <img src="data:image/png;base64,{{transactionHashQRBase64}}" alt="Transaction Hash QR Code">
+        <!-- <img style="max-width: 40px;" src="data:image/png;base64,{{transactionHashQRBase64}}" alt="Transaction Hash QR Code"> -->
+        <img style="max-width: 40px;" src="https://www.qr-generator.nu/qrcode.svg?download=1" alt="Transaction Hash QR Code">
     </div>
+    <!-- <img class="logo" src="data:image/jpeg;base64,{{Logo}}" alt="Institution Logo"> -->
+</div>
 </body>
 </html>
+
