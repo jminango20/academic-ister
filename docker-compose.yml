@@ -7,37 +7,11 @@ services:
       POSTGRES_DB: academic_certificates
       POSTGRES_USER: ister
       POSTGRES_PASSWORD: 1ster
-    healthcheck:
-      test: [ "CMD", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data  
-    networks:
-      - default
-
-  nodejs-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    depends_on:
-      - postgres
-    environment:
-      DATABASE_URL: postgres://ister:1ster@postgres:5432/academic_certificates
-    volumes:
-      - ./src/utils/certificatesInPDF:/usr/app/src/certificatesInPDF
-      - ./src/utils/img:/usr/app/src/utils/img
-    networks:
-      - default
+     - pgdata:/var/lib/postgresql/data  
 
 volumes:
   pgdata:
     driver: local
-
-# clean docker space
-# docker system prune -a --volumes
