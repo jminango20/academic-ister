@@ -41,3 +41,4 @@ volumes:
 
 # clean docker space
 # docker system prune -a --volumes
+# docker-compose logs -f
