@@ -15,7 +15,6 @@ async function generateCertificatePDF(name, documentIdentification, course, desc
         const year = issuedDate.getFullYear();
 
         const formattedDate = `${day}/${month}/${year}`;
-        // const formattedDate = issuedDate.toISOString().split('T')[0];
 
         htmlTemplateCopy = htmlTemplateCopy.replace('{{name}}', name);
         htmlTemplateCopy = htmlTemplateCopy.replace('{{documentIdentification}}', documentIdentification);
@@ -80,6 +79,8 @@ async function generateCertificatePDF(name, documentIdentification, course, desc
         });
         const page = await browser.newPage();
         await page.setRequestInterception(true);
+
+        // clg to view requests and responses
         page.on('request', (req) => {
             console.log(req.url(), req.resourceType());
             req.continue();
