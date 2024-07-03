@@ -4,9 +4,11 @@ const generateCertificatePDF = require('../utils/generateCertificatePDF');
 require("dotenv").config();
 const path = require('path');
 
+const { ethers } = require("ethers");
+
 const academicAddress = process.env.CONTRACT_ADDRESS_ACADEMIC_ISTER;
 
-const academicContract = require('../models/academicCertificate');
+const { academicContract, provider, wallet } = require('../models/academicCertificate');
 const responseHandler = require('../views/responseHandler');
 
 exports.issueCertificate = async (req, res) => {
@@ -15,7 +17,24 @@ exports.issueCertificate = async (req, res) => {
     const humanReadableTimestamp = new Date(timestamp).toISOString();
 
     try {
-        const tx = await academicContract.issueCertificate(name, documentIdentification, course, description);
+        console.log("***** ACADEMIC CONTROLLER START *****");
+        const balance = await provider.getBalance(wallet.address);
+        console.log('Balance:', ethers.utils.formatEther(balance));
+
+        // Estimar el gas necesario para la transacción
+        const estimatedGas = await academicContract.estimateGas.issueCertificate(name, documentIdentification, course, description);
+        console.log('Estimated Gas:', ethers.utils.formatEther(estimatedGas));
+
+
+        // Enviar la transacción
+        const tx = await academicContract.issueCertificate(name, documentIdentification, course, description, {
+            gasLimit: estimatedGas.mul(2),  // Puedes ajustar este límite según sea necesario
+            gasPrice: ethers.utils.parseUnits('100', 'gwei')
+        });
+
+        // const tx = await academicContract.issueCertificate(name, documentIdentification, course, description);
+        
+        
         const receipt = await tx.wait();
         const event = receipt.events.find(event => event.event === 'CertificateMinted');
         if (!event) {
@@ -49,8 +68,12 @@ exports.issueCertificate = async (req, res) => {
     } catch (error) {
         if (error.message.includes('Certificate already exists')) {
             responseHandler.error(res, {message:'Certificate already exists'});
+        } else if (error.message.includes('Insufficient funds for intrinsic transaction cost')) {
+            responseHandler.error(res, {message:'Certificate already exists'});
+            console.error("Insufficient funds for the transaction");
         } else {
             responseHandler.error(res, error);
+            console.error(error.message);
         }
     }
 };
@@ -181,6 +204,26 @@ exports.getCertificateMetadataDB = async (req, res) => {
         } else {
             const certificate = result.rows[0];
             responseHandler.success(res, { certificate });
+        }
+    } catch (error) {
+        responseHandler.error(res, error.message);
+    }
+};
+
+// Query to get all metadata certificates from DB
+exports.getAllCertificatesMetadataDB = async (req, res) => {
+    const { page = 1, limit = 10 } = req.query;
+    const offset = (page - 1) * limit;
+
+    try {
+        const client = await pool.connect();
+        const result = await client.query('SELECT * FROM certificates ORDER BY id DESC LIMIT $1 OFFSET $2', [limit, offset]);
+        client.release();
+
+        if (result.rows.length === 0) {
+            responseHandler.error(res, { message: 'Certificates not registered' });
+        } else {
+            responseHandler.success(res, { certificates: result.rows });
         }
     } catch (error) {
         responseHandler.error(res, error.message);

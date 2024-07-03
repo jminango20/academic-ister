@@ -11,4 +11,10 @@ const { abi } = require("../../artifacts/contracts/IAcademicCertificate.sol/IAca
 
 const academicContract = new ethers.Contract(academicAddress, abi, signer);
 
-module.exports = academicContract;
+// module.exports = academicContract;
+
+module.exports = {
+    academicContract,
+    provider,
+    wallet: signer,
+};

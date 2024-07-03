@@ -2,11 +2,11 @@ const QRCode = require('qrcode');
 const fs = require('fs-extra');
 const puppeteer = require('puppeteer');
 const locateChrome = require('locate-chrome');
-const htmlTemplate = require('./html_template');
+const html_version2 = require('./html_template');
 
 async function generateCertificatePDF(name, documentIdentification, course, description, issuedAt, tokenId, transactionHash, academicAddress) {
     try {
-        let htmlTemplateCopy = htmlTemplate;
+        let htmlTemplateCopy = html_version2;
 
         const course_l = course;
         const issuedDate = new Date(issuedAt);

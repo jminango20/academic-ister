@@ -6,6 +6,7 @@ router.post('/issueCertificate', academicController.issueCertificate);
 router.post('/issueCertificatesBatch', academicController.issueCertificatesBatch);
 router.post('/verifyCertificate', academicController.verifyCertificate);
 router.get('/certificate/:tokenId', academicController.getCertificateMetadata);
+router.get('/certificates', academicController.getAllCertificatesMetadataDB);
 router.post('/certificateIds/', academicController.getCertificateIdsByDocumentId);
 router.get('/institutionName', academicController.getInstitutionName);
 
