@@ -24,3 +24,4 @@ backend/logs/
 coverage/
 
 backend/src/utils/certificatesInPDF
+backend/src/utils/signs

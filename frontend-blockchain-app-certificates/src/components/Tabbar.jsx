@@ -4,6 +4,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Contracts from './pages/Contracts';
+import CRUDCertificate from "./pages/CRUDCertificate";
 import { CssBaseline, Typography } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import {COLORS} from '../config'
@@ -83,7 +84,7 @@ export default function TabbarNavigation() {
           <Contracts/>
         </CustomTabPanel>
         <CustomTabPanel value={value} index={1}>
-          Item Two
+          <CRUDCertificate/>
         </CustomTabPanel>
         <CustomTabPanel value={value} index={2}>
           Item Three

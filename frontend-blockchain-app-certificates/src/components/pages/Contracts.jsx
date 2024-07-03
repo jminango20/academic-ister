@@ -79,7 +79,7 @@ const Contracts = () => {
         width: "100%",
       }}
     >
-      <Typography sx={{ fontWeight: "bold" }}>CREAR CONTRATO</Typography>
+      <Typography component={'div'} sx={{ fontWeight: "bold" }}>CREAR CONTRATO</Typography>
       <Box sx={{ display: "flex", flexDirection: "row", gap: 2,
         paddingRight: "20%" }}>
         <Box
@@ -93,7 +93,7 @@ const Contracts = () => {
             
           }}
         >
-          <Typography label="Input 1">WALLET ADDRESS</Typography>
+          <Typography component={'div'} label="Input 1">WALLET ADDRESS</Typography>
           <StyledTextField
             label="Contract address"
             InputLabelProps={{
@@ -120,7 +120,7 @@ const Contracts = () => {
             minWidth: "33.33%",
           }}
         >
-          <Typography label="Input 1">INSTITUCIÓN</Typography>
+          <Typography component={'div'} label="Input 1">INSTITUCIÓN</Typography>
           <StyledTextField
             label="Contract name"
             InputLabelProps={{
@@ -162,7 +162,7 @@ const Contracts = () => {
         </Box>
       </Box>
       <Divider color="white"/>
-      <Typography sx={{ fontWeight: "bold" }}>LISTA DE CONTRATOS</Typography>
+      <Typography component={'div'} sx={{ fontWeight: "bold" }}>LISTA DE CONTRATOS</Typography>
       <Box sx={{ display: "flex", flexDirection: "row", gap: 2,
         paddingRight: "20%", minWidth: '100%' }}>
         <Box
@@ -175,7 +175,7 @@ const Contracts = () => {
             minWidth: "100%",
           }}
         >
-          <Typography label="Input 1" 
+          <Typography component={'div'} label="Input 1" 
           sx={{ minWidth: "20%" }}>Nombre del contrato</Typography>
           <StyledTextField
             label="Contract name"
@@ -219,9 +219,9 @@ const Contracts = () => {
           <Table stickyHeader aria-label="sticky table">
             <TableHead sx={{bgcolor: 'white'}}>
               <TableRow sx={{ color: "white" }}>
-                {columns.map((column) => (
+                {columns.map((column, index) => (
                   <TableCell
-                    key={column.id}
+                    key={`${column.id}-${index}`}
                     align={column.align}
                     style={{ minWidth: column.minWidth, color: 'white' }}
                     // sx={{ bgcolor: "white" }}
@@ -234,13 +234,13 @@ const Contracts = () => {
             <TableBody>
               {rows
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row) => {
+                .map((row, index) => {
                   return (
-                    <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
-                      {columns.map((column) => {
+                    <TableRow hover role="checkbox" tabIndex={-1} key={`${row.code}-${index}`}>
+                      {columns.map((column, index) => {
                         const value = row[column.id];
                         return (
-                          <TableCell key={column.id} align={column.align} style={{ color: 'white' }}>
+                          <TableCell key={`${column.id}-${index}`} align={column.align} style={{ color: 'white' }}>
                             {column.format && typeof value === 'number'
                               ? column.format(value)
                               : value}
