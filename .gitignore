@@ -25,3 +25,7 @@ coverage/
 
 backend/src/utils/certificatesInPDF
 backend/src/utils/signs
+
+# Frontend
+frontend-blockchain-app-certificates/src/utils/certificate-template/img/
+

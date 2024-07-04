@@ -4,9 +4,10 @@ const html_template_certificate = `
 <!DOCTYPE html>
 <html style="-webkit-print-color-adjust: exact; margin: 0">
 <head>
-    <title>Web Certificate</title>
+    <title>{{web-title}}</title>
     <!-- fonts -->
     <!-- Name Certificate -->
+    <link rel="icon" href="https://res.cloudinary.com/dvjnqwzpc/image/upload/v1720111589/blockchain-webpage/cerif-logo_xkfm37.ico" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Playball&display=swap" rel="stylesheet">
@@ -32,10 +33,16 @@ const html_template_certificate = `
         }
 
         .bodydiv {
+            top: 0;
+            left: 0;
+            right: 0;
+            min-height: 21cm;
+            min-width: 29.7cm;
+            max-height: 21cm;
+            max-width: 29.7cm;
             position: absolute;
             display: flex;
             flex-direction: row;
-            min-height: 16cm;
         }
 
         @page {
@@ -58,7 +65,7 @@ const html_template_certificate = `
             max-width: 29.7cm;
             z-index: -1;
             background: #D1EBF9;
-            background-image: url('./img/background-certificado.png');
+            background-image: url({{url-background}});
             background-position: fixed;
             background-repeat: repeat;
             background-size: cover;
@@ -157,9 +164,9 @@ const html_template_certificate = `
             text-orientation:  sideways;
             writing-mode: vertical-lr;
             align-self: flex-end;
-            margin-bottom: 0.5cm;
+            margin-bottom: 0.2cm;
             /* margin-left: 2.5cm; */
-            margin-top: 3cm;
+            margin-top: -4cm;
         }
 
         .hash-style:active {
@@ -232,7 +239,8 @@ const html_template_certificate = `
 
 <body style="margin: 0">
     <div class="page-background"></div>
-    <div class="bodydiv" style="margin-top: 5cm;">
+    <div class="bodydiv" style="margin-top: 5cm !important;min-height: 16cm;
+    max-height: 16cm !important;">
         <div class="col0">
             <div class="blockchain-banner-section">
                 <p class="montserrat-text-banner" 
@@ -252,16 +260,16 @@ const html_template_certificate = `
                 <!-- <hr> -->
                 <div class="linea"></div>
                 <p class="montserrat-text">Por haber aprobado el curso <strong>{{course}}</strong>: {{description}}.</p>
-                <p class="montserrat-text" style="text-align: right;"><strong>Fecha:</strong> {{issuedAt}}</p>
+                <p class="montserrat-text" style="text-align: right;">{{issuedAt}}</p>
                 <div class="signs-section">
                     <div>
-                        <img style="max-width: 2.5cm;min-height: 2cm;max-height: 2cm;" src="./signs/firmaJM.svg" alt="Transaction Hash QR Code">
+                        <img style="max-width: 2.5cm;min-height: 2cm;max-height: 2cm;" src="{{url-sign-instructor}}" alt="Instructor sign">
                         <div class="sign-linea"></div>
                         <p style="margin-top: 0cm;font-size: 0.4cm !important;" class="montserrat-text-sign"><strong>PhD. Juan Minango</strong></p>
                         <p style="margin-top: -0.35cm;font-size: 0.35cm !important;" class="montserrat-text-sign">Instructor del curso</p>
                     </div>
                     <div>
-                        <img style="max-width: auto; min-height: 2cm;max-height: 2cm;" src="./signs/firmaMZ.svg" alt="Transaction Hash QR Code">
+                        <img style="max-width: auto; min-height: 2cm;max-height: 2cm;" src="{{url-sign-director}}" alt="director sign">
                         <div class="sign-linea"></div>
                         <p style="margin-top: 0cm;font-size: 0.4cm !important;" class="montserrat-text-sign"><strong>PhD. Marcelo Zambrano</strong></p>
                         <p style="margin-top: -0.35cm;font-size: 0.35cm !important;" class="montserrat-text-sign">Director de Investigación</p>
@@ -271,8 +279,8 @@ const html_template_certificate = `
             
         </div>
         <div class="col2">
-            <a href="{{url-hash}}" class="hash-style">Hash: {{transactionHash}}</a>
-            <img style="max-width: 1.5cm; border: white solid 0.15cm; border-radius: 5%;" src="data:image/png;base64,{{transactionHashQRBase64}}" alt="Transaction Hash QR Code">
+            <a href="{{url-hash}}" class="hash-style" target="_blank" rel="noopener noreferrer">Hash: {{transactionHash}}</a>
+            <img style="max-width: 1.5cm; border: white solid 0.01cm; border-radius: 5%;" src="data:image/png;base64,{{transactionHashQRBase64}}" alt="Transaction Hash QR Code">
         </div>
     </div>
 </body>

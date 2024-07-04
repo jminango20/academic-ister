@@ -1,0 +1,7 @@
+VITE_API_BASE_URL=https://3000-idx-academic-ister-......c2m.cloudworkstations.dev/api
+VITE_BEARER_TOKEN=
+VITE_CONTRACT_ADDRESS_ACADEMIC_ISTER="0x70ACF*******************d2CB"
+
+VITE_URL_BACKGROUND_CERTIFICATE=https://res.cloudinary.com/dvjnqwzpc/image/upload/v1720107665/blockchain-webpage/background-certificado_ax48ml.png
+VITE_URL_SIGN_INSTRUCTOR=https://res.cloudinary.com*******_k9k81q.svg
+VITE_URL_SIGN_DIRECTOR=https://res.cloudinary.com/dv*******_amcpow.svg

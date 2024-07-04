@@ -212,18 +212,24 @@ exports.getCertificateMetadataDB = async (req, res) => {
 
 // Query to get all metadata certificates from DB
 exports.getAllCertificatesMetadataDB = async (req, res) => {
-    const { page = 1, limit = 10 } = req.query;
+    const { page, limit } = req.query;
     const offset = (page - 1) * limit;
 
     try {
         const client = await pool.connect();
+        // Consulta para obtener los registros paginados
         const result = await client.query('SELECT * FROM certificates ORDER BY id DESC LIMIT $1 OFFSET $2', [limit, offset]);
+        // Consulta para obtener el total de registros en la tabla
+        const totalResult = await client.query('SELECT COUNT(*) FROM certificates');
+        const totalCertificates = totalResult.rows[0].count;
+        
         client.release();
 
         if (result.rows.length === 0) {
             responseHandler.error(res, { message: 'Certificates not registered' });
         } else {
-            responseHandler.success(res, { certificates: result.rows });
+            const certificates = result.rows;
+            responseHandler.success(res, { certificates, totalCertificates });
         }
     } catch (error) {
         responseHandler.error(res, error.message);

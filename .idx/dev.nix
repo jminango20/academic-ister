@@ -22,6 +22,10 @@
     # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
     extensions = [
       # "vscodevim.vim"
+      "ritwickdey.LiveServer"
+      "ContractShark.solidity-lang"
+      "cweijan.vscode-mysql-client2"
+      "rangav.vscode-thunder-client"
     ];
 
     # Enable previews

@@ -10,12 +10,18 @@ const getHeaders = () => {
   };
 };
 
-export const fetchCertificates = async () => {
+export const getAllCertificates = async (page, limit) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/certificates`, {
+    const url = new URL(`${API_BASE_URL}/academic/certificates`);
+    url.searchParams.append('page', page);
+    url.searchParams.append('limit', limit);
+
+    const response = await fetch(url, {
+      method: 'GET',
       headers: getHeaders(),
     });
-    console.log(response)
+    // console.log(response)
+
     if (!response.ok) {
       throw new Error('Error fetching certificates');
     }

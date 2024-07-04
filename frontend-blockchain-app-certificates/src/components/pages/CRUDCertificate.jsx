@@ -1,7 +1,10 @@
-import {React, useState} from "react";
-import { Box, Button, Divider, Typography, FormControl, Modal } from "@mui/material";
-import { StyledTextField } from "../../utils/styles";
+import {React, useState, useEffect} from "react";
+import { Box, Button, Divider, Typography, FormControl, Modal, Select, MenuItem } from "@mui/material";
+import IconButton from '@mui/material/IconButton';
+import { styled, useTheme } from '@mui/material/styles';
+import { StyledTextField, BootstrapInput } from "../../utils/styles";
 import PropTypes from 'prop-types';
+import QRCode from 'qrcode'
 
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -10,42 +13,28 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
+import PrintIcon from '@mui/icons-material/Print';
 
-import useIssueCertificate from '../../hooks/useIssueCertificate';
+import useAPIsCertificate from '../../hooks/useAPIsCertificate';
 import html_template_certificate from "../../utils/certificate-template/html_template"
+import {formatDate, formatDateWCity} from "../../utils/helpers"
 
-const columns = [
-  { id: 'name', label: 'Nombre del Contrato', minWidth: 170 },
-  { id: 'contractAddress', label: 'Contract Address', minWidth: 100 },
-  {
-    id: 'walletAddress',
-    label: 'Wallet Address',
-    minWidth: 170,
-    align: 'right',
-  }
-];
 
-function createData(name, contractAddress, walletAddress) {
-  return { name, contractAddress, walletAddress };
-}
+const _url_background = import.meta.env.VITE_URL_BACKGROUND_CERTIFICATE;
+const _sign_instructor = import.meta.env.VITE_URL_SIGN_INSTRUCTOR;
+const _sign_director = import.meta.env.VITE_URL_SIGN_DIRECTOR;
+const ContractAddress = import.meta.env.VITE_CONTRACT_ADDRESS_ACADEMIC_ISTER;
 
-const rows = [
-  createData('India', 1324171354, 1324171354),
-  createData('China', 1324171354, 1403500365),
-  createData('Italy', 1324171354, 60483973),
-  createData('United States', 1324171354, 327167434),
-  createData('Canada', 1324171354, 37602103),
-  createData('Australia', 1324171354, 25475400),
-  createData('Germany', 1324171354, 83019200),
-  createData('Ireland', 1324171354, 4857000),
-  createData('Mexico', 1324171354, 126577691),
-  createData('Japan', 1324171354, 126317000),
-  createData('France', 1324171354, 67022000),
-  createData('United Kingdom', 1324171354, 67545757),
-  createData('Russia', 1324171354, 1467937446),
-  createData('Nigeria', 1324171354, 200962417),
-  createData('Brazil', 1324171354, 210147125),
-];
+const columnsTable = [
+  { id: 'document_id', label: 'Identificación', minWidth: 70, align: 'center' },
+  { id: 'name', label: 'Nombre del Participante', minWidth: 170 , align: 'center' },
+  { id: 'course', label: 'Curso', minWidth: 170, align: 'center' },
+  { id: 'issued_at', label: 'Fecha de Emisión', minWidth: 80, align: 'center' },
+  // { id: 'token_id', label: 'Token ID', minWidth: 80, align: 'center' },
+  { id: 'tx_hash', label: 'Hash de la Tx', minWidth: 100, maxWidth: 150, align: 'center' },
+  {id: 'btns-section', label: 'Acciones', minWidth: 100, align: 'center'},
+]
+
 
 const styleModal = {
   position: 'absolute',
@@ -59,26 +48,55 @@ const styleModal = {
   p: 4,
 };
 
+
 const CRUDCertificate = () => {
-  
+
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  let html_template = html_template_certificate;
+  const [rowsPerPage, setRowsPerPage] = useState(3);
+  const [rows, setRows] = useState([]);
+  const [totalCertificates, setTotalCertificates] = useState(0);
   const [open, setOpen] = useState(false);
+  const [contrato, setContrato] = useState('');
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const theme = useTheme();
+  let html_template = html_template_certificate;
 
   // API REST variables
-  const { data, loading, error, submitCertificate } = useIssueCertificate();
+  const { data, loading, error, dataCertificate, loadingData, errorData,
+    submitCertificate, getCertificatesPagination } = useAPIsCertificate();
+
+  useEffect(() => {
+    getCertificatesPagination(page+1, rowsPerPage);
+  }, [page, rowsPerPage]);
+
+  useEffect(() => {
+    if (dataCertificate && dataCertificate.certificates) {
+      setRows(dataCertificate.certificates || []);
+    }
+  }, [dataCertificate?.certificates]);
+
+  useEffect(() => {
+    if (dataCertificate) {
+      if (dataCertificate.certificates) {
+        setRows(dataCertificate.certificates);
+        setTotalCertificates(parseInt(dataCertificate.totalCertificates, 10) || 0);
+      }
+    }
+  }, [dataCertificate]);
+
+
+
   const [formData, setFormData] = useState({
     name: '',
     documentIdentification: '',
     course: '',
     description: '',
   });
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === "documentIdentification") {
       // Check if the value is a number and its length is between 10 and 13
       if (!/^\d*$/.test(value) || value.length > 13) {
@@ -114,6 +132,42 @@ const CRUDCertificate = () => {
     submitCertificate(formData);
   };
 
+  const openCertificateHTML = async (rowData) => {
+    try {
+      let html_template_copy = html_template; // Copiar el template del certificado original
+    
+      const url = `https://sepolia.etherscan.io/nft/${ContractAddress}/${rowData.token_id}`;
+      const transactionHashQRCode = await QRCode.toDataURL(url);
+      const transactionHashQRBase64 = transactionHashQRCode.split(',')[1];
+
+      // Reemplazar los placeholders con los datos de la fila específica
+      html_template_copy = html_template_copy.replace('{{web-title}}', `certificado-curso-${rowData.course}-${rowData.name}`);
+      html_template_copy = html_template_copy.replace('{{name}}', rowData.name);
+      html_template_copy = html_template_copy.replace('{{documentIdentification}}', rowData.documentIdentification);
+      html_template_copy = html_template_copy.replace('{{course}}', rowData.course);
+      html_template_copy = html_template_copy.replace('{{course2}}', rowData.course);
+      html_template_copy = html_template_copy.replace('{{description}}', rowData.description);
+      html_template_copy = html_template_copy.replace('{{issuedAt}}', formatDateWCity('Sangolquí', rowData.issued_at));
+      html_template_copy = html_template_copy.replace('{{transactionHash}}', rowData.tx_hash);
+
+      html_template_copy = html_template_copy.replace('{{url-background}}', _url_background);
+      html_template_copy = html_template_copy.replace('{{url-sign-instructor}}', _sign_instructor);
+      html_template_copy = html_template_copy.replace('{{url-sign-director}}', _sign_director);
+
+
+      html_template = html_template.replace('{{transactionHashQRBase64}}', transactionHashQRBase64);
+      html_template = html_template.replace('{{url-hash}}', url);
+    
+      // Abrir una nueva pestaña con el HTML generado
+      const newWindow = window.open();
+      newWindow.document.open();
+      newWindow.document.write(html_template_copy);
+      newWindow.document.close();
+    } catch (error) {
+      console.error('Error al abrir el certificado HTML:', error);
+    }
+  };
+
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -134,6 +188,8 @@ const CRUDCertificate = () => {
       }}
     >
       <Typography style={{ fontWeight: "bold" }}>CREAR CERTIFICADO</Typography>
+      <Typography component={'div'} label="Input 1"
+                sx={{ minWidth: "20%" }}>Seleccione el contrato asociado a su billetera:</Typography>
       <Box sx={{
         display: "flex", flexDirection: "row", gap: 2,
         paddingRight: "20%"
@@ -149,8 +205,26 @@ const CRUDCertificate = () => {
 
           }}
         >
-          <Typography component={'span'} label="Input 1">WALLET ADDRESS</Typography>
-          <StyledTextField
+          <Typography component={'span'} label="Input 1">CONTRACT ADDRESS</Typography>
+          <FormControl required sx={{ minWidth: "90%" }}>
+            <Select
+              labelId="demo-select-small-label"
+              id="demo-select-small"
+              value={contrato}
+              label="Contrato *"
+              onChange={(event) => setContrato(event.target.value)}
+              sx={{ minWidth: "90%"}}
+              input={<BootstrapInput />}
+            >
+              <MenuItem value="">
+                <em></em>
+              </MenuItem>
+              <MenuItem value={10}>Contrato 1</MenuItem>
+              <MenuItem value={20}>Contrato 2</MenuItem>
+              <MenuItem value={30}>Contrato 3</MenuItem>
+            </Select>
+          </FormControl>
+          {/* <StyledTextField
             label="Contract address"
             InputLabelProps={{
               style: { color: "white" },
@@ -163,7 +237,7 @@ const CRUDCertificate = () => {
             size="small"
             id="outlined-disabled"
             sx={{ minWidth: "90%" }}
-          />
+          /> */}
         </Box>
         <Box
           sx={{
@@ -184,6 +258,7 @@ const CRUDCertificate = () => {
             }}
             InputProps={{
               style: { color: "white" },
+              readOnly: true,
             }}
             defaultValue=""
             size="small"
@@ -378,9 +453,9 @@ const CRUDCertificate = () => {
       </FormControl>
       {error && <p>Error: {error.message}</p>}
       {data && <p>Certificate issued successfully!</p>}
-      <Modal 
+      <Modal
       style={styleModal}
-      keepMounted 
+      keepMounted
       open={open} onClose={handleClose}
 // Suggested code may be subject to a license. Learn more: ~LicenseLog:1029329151.
       aria-labelledby="modal-modal-title"
@@ -426,7 +501,7 @@ const CRUDCertificate = () => {
           <Table stickyHeader aria-label="sticky table">
             <TableHead sx={{ bgcolor: 'white' }}>
               <TableRow sx={{ color: "white" }}>
-                {columns.map((column, index) => (
+                {columnsTable.map((column, index) => (
                   <TableCell
                     key={`${column.id}-${index}`}
                     align={column.align}
@@ -439,33 +514,37 @@ const CRUDCertificate = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row, index) => {
-                  return (
-                    <TableRow hover role="checkbox" tabIndex={-1} key={`${row.code}-${index}`}>
-                      {columns.map((column) => {
-                        const value = row[column.id];
-                        return (
-                          <TableCell key={column.id} align={column.align} style={{ color: 'white' }}>
-                            {column.format && typeof value === 'number'
-                              ? column.format(value)
-                              : value}
-
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  );
-                })}
+                    {rows.map((row, index) => (
+                <TableRow hover key={row.id}>
+                {columnsTable.map((column) => (
+                  <TableCell key={`${row.id}-${column.id}`} align={column.align} style={{ color: 'white' }}>
+                    {column.id === 'btns-section' ? (
+                      <IconButton onClick={() => openCertificateHTML(row)} color="inherit">
+                        {theme.direction === 'rtl' ? <PrintIcon color="inherit" /> : <PrintIcon />}
+                      </IconButton>
+                    ) : (
+                      column.id === 'issued_at' ? formatDate(row.issued_at) :
+                      column.id === 'tx_hash' ? (
+                        <a style={{color: 'white'}}
+                        href={`https://sepolia.etherscan.io/nft/${ContractAddress}/${row.token_id}`} target="_blank" rel="noopener noreferrer">
+                          {row[column.id]}
+                        </a>
+                      ) : (
+                        row[column.id] || '-' // Fallback value if cell is empty
+                      )
+                    )}
+                  </TableCell>
+                ))}
+              </TableRow>
+              ))}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
           style={{ color: 'white' }}
-          rowsPerPageOptions={[5, 10, 25]}
+          rowsPerPageOptions={[3, 6, 9]}
           component="div"
-          count={rows.length}
+          count={totalCertificates}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

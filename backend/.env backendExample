@@ -1,0 +1,19 @@
+API_URL="https://******YommUWfEJ"
+PRIVATE_KEY="838bfb********9ad24b0913"
+CONTRACT_ADDRESS_ACADEMIC_FACTORY="0xe59e2******Bf8a46fe25"
+CONTRACT_ADDRESS_ACADEMIC_ISTER="0x70ACF7******3E4d2AB"
+
+
+DB_USER=user_example
+DB_HOST=localhost
+DB_NAME=academic_certificates
+DB_PASSWORD=psw_example
+DB_PORT=5432
+
+PORT=3000
+
+# To compile hardhat
+# npx hardhat compile
+# To execute Docker
+# 1.  docker-compose build
+# 2.  docker-compose up -d
