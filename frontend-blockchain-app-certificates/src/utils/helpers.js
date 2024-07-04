@@ -20,3 +20,9 @@ export function formatDateWCity(city, dateString) {
 
     return `${city}, ${day} de ${meses[month]} del ${year}`;
 }
+
+export function contractAbi() {
+    const abi = [];
+  
+    return abi;
+  }

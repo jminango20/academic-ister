@@ -1,15 +1,29 @@
-import React from 'react';
+import { useState, useEffect, createContext,React} from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 // import Header from './components/common/Header';
-import ConnectMetaMask from './components/pages/ConnectWallet';
-// import MainPage from './components/pages/MainPage';
-// import Main2 from './components/pages/Main';
 import { useUserHash } from './contexts/UserHashContext';
 import './App.css'
-import Home from './components/pages/Home';
+import ConnectMetaMask from '@pages/ConnectWallet';
+import Home from '@pages/Home';
+import Web3 from 'web3';
 
 const App = () => {
   const { userHash } = useUserHash();
+
+  const web3 = new Web3(Web3.givenProvider);
+
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [ethWallet, setEthWallet] = useState(null);
+  const [userAcc, setUserAcc] = useState(null);
+  const [connectError, setConnectError] = useState(null);
+  
+  const contextVal = {
+    authenticated: loggedIn,
+    ethWallet: ethWallet,
+    userAcc: userAcc,
+    connectionErr: connectError,
+    mmLogin: connectWallet
+  };
 
   return (
     <Router>

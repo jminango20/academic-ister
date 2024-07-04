@@ -51,13 +51,13 @@ exports.issueCertificate = async (req, res) => {
             [name, documentIdentification, course, description, humanReadableTimestamp, tokenId, receipt.transactionHash]);
 
         
-        const pdfBuffer = await generateCertificatePDF(name, documentIdentification, course, description, humanReadableTimestamp, tokenId, receipt.transactionHash, academicAddress);
+        // const pdfBuffer = await generateCertificatePDF(name, documentIdentification, course, description, humanReadableTimestamp, tokenId, receipt.transactionHash, academicAddress);
         
-        const pdfFileName = `certificate_${name}-${tokenId}-${timestamp}.pdf`;
-        // const filePath = `./certificatesInPDF/${pdfFileName}`; 
-        // New absolute path
-        const filePath = path.join(__dirname, '..', 'certificatesInPDF', pdfFileName); 
-        await fs.writeFile(filePath, pdfBuffer);
+        // const pdfFileName = `certificate_${name}-${tokenId}-${timestamp}.pdf`;
+        // // const filePath = `./certificatesInPDF/${pdfFileName}`; 
+        // // New absolute path
+        // const filePath = path.join(__dirname, '..', 'certificatesInPDF', pdfFileName); 
+        // await fs.writeFile(filePath, pdfBuffer);
     
         responseHandler.success(res, {
             message: "Academic Certificate deployed successfully",
@@ -69,7 +69,7 @@ exports.issueCertificate = async (req, res) => {
         if (error.message.includes('Certificate already exists')) {
             responseHandler.error(res, {message:'Certificate already exists'});
         } else if (error.message.includes('Insufficient funds for intrinsic transaction cost')) {
-            responseHandler.error(res, {message:'Certificate already exists'});
+            responseHandler.error(res, {message:'Insufficient funds for the transaction'});
             console.error("Insufficient funds for the transaction");
         } else {
             responseHandler.error(res, error);
