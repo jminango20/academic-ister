@@ -1,113 +1,35 @@
-import * as React from "react";
-import { styled, useTheme, createTheme, ThemeProvider } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import MuiDrawer from "@mui/material/Drawer";
-import MuiAppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import List from "@mui/material/List";
-import CssBaseline from "@mui/material/CssBaseline";
-import Typography from "@mui/material/Typography";
-import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
-import MenuIcon from "@mui/icons-material/Menu";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
-import MailIcon from "@mui/icons-material/Mail";
+// import * as React from "react";
+import { useEffect, useState } from "react";
+import { useTheme, ThemeProvider } from "@mui/material/styles";
 
-import { Button, Stack } from "@mui/material";
-import ExitToAppIcon from "@mui/icons-material/ExitToApp";
-import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { Button, Stack, Box, Toolbar, CssBaseline, 
+  Typography, Divider, IconButton } 
+  from "@mui/material";
+import {
+  ExitToApp as ExitToAppIcon,
+  Menu as MenuIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  AccountBalanceWallet as AccountBalanceWalletIcon,
+  ContentCopy as ContentCopyIcon,
+} from '@mui/icons-material';
 
-import { useUserHash } from "../../contexts/UserHashContext";
-import "../../assets/styles/main-style.css";
+import {theme_personal, DrawerHeader, AppBar, Drawer} from '@utils/styles'
+import "@assets/styles/main-style.css";
+import RU from "@assets/img/RU.png";
+
+//Component
 import TabbarNavigation from "../Tabbar";
-import RU from "../../assets/img/RU.png";
 import {APP_NAME} from "../../config"
 
-const drawerWidth = 240;
 
-const theme_personal = createTheme({
-  palette: {
-    background: {
-      default: "rgba(45, 164, 202, 0.7)",
-    },
-  },
-});
+//Context
+// import { useUserHash } from "../../contexts/UserHashContext";
+import { useAuthUser } from "../../contexts/AuthUserContext";
 
-const openedMixin = (theme) => ({
-  width: drawerWidth,
-  transition: theme.transitions.create("width", {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.enteringScreen,
-  }),
-  overflowX: "hidden",
-});
-
-const closedMixin = (theme) => ({
-  transition: theme.transitions.create("width", {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  overflowX: "hidden",
-  width: `calc(${theme.spacing(7)} + 1px)`,
-  [theme.breakpoints.up("sm")]: {
-    width: `calc(${theme.spacing(8)} + 1px)`,
-  },
-});
-
-const DrawerHeader = styled("div")(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "flex-end",
-  padding: theme.spacing(0, 1),
-  // necessary for content to be below app bar
-  ...theme.mixins.toolbar,
-}));
-
-const AppBar = styled(MuiAppBar, {
-  shouldForwardProp: (prop) => prop !== "open",
-})(({ theme, open }) => ({
-  zIndex: theme.zIndex.drawer + 1,
-  transition: theme.transitions.create(["width", "margin"], {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  ...(open && {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(["width", "margin"], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  }),
-}));
-
-const Drawer = styled(MuiDrawer, {
-  shouldForwardProp: (prop) => prop !== "open",
-})(({ theme, open }) => ({
-  width: drawerWidth,
-  flexShrink: 0,
-  whiteSpace: "nowrap",
-  boxSizing: "border-box",
-  bgcolor: "#00526C",
-  ...(open && {
-    ...openedMixin(theme),
-    "& .MuiDrawer-paper": openedMixin(theme),
-  }),
-  ...(!open && {
-    ...closedMixin(theme),
-    "& .MuiDrawer-paper": closedMixin(theme),
-  }),
-}));
 
 const useCopyToClipboard = () => {
-  const [isCopied, setIsCopied] = React.useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   const copyToClipboard = async (content) => {
     try {
@@ -124,10 +46,13 @@ const useCopyToClipboard = () => {
 };
 
 export default function Home() {
-  const { userHash, disconnectMetaMask } = useUserHash();
+
+  // const { userHash, disconnectMetaMask } = useUserHash();
+  const { authenticated, userAcc, mmLogout  } = useAuthUser();
+
   const theme = useTheme();
-  const [open, setOpen] = React.useState(true);
-  const [isSmallScreen, setIsSmallScreen] = React.useState(
+  const [open, setOpen] = useState(true);
+  const [isSmallScreen, setIsSmallScreen] = useState(
     window.innerWidth < 520
   );
   const { isCopied, copyToClipboard } = useCopyToClipboard();
@@ -135,12 +60,11 @@ export default function Home() {
   const handleDrawerOpen = () => {
     setOpen(true);
   };
-
   const handleDrawerClose = () => {
     setOpen(false);
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
@@ -176,7 +100,7 @@ export default function Home() {
               <Button
                 className="btn-logout"
                 sx={{bgcolor: 'rgba(214, 97, 97,0.85)', ":hover" : {bgcolor: 'rgba(214, 97, 97,0.95)' }}}
-                onClick={disconnectMetaMask}
+                onClick={mmLogout}
                 variant="contained"
                 startIcon={<ExitToAppIcon />}
               >
@@ -184,7 +108,7 @@ export default function Home() {
               </Button>
             ) : (
               <IconButton
-                onClick={disconnectMetaMask}
+                onClick={mmLogout}
                 color="inherit"
                 aria-label="disconnect-wallet"
                 size="small"
@@ -205,56 +129,6 @@ export default function Home() {
             </IconButton>
           </DrawerHeader>
           <Divider color="white" />
-          {/* <List>
-            {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-                <ListItem key={text} disablePadding sx={{ display: 'block' }}>
-                <ListItemButton
-                    sx={{
-                    minHeight: 48,
-                    justifyContent: open ? 'initial' : 'center',
-                    px: 2.5,
-                    }}
-                >
-                    <ListItemIcon
-                    sx={{
-                        minWidth: 0,
-                        mr: open ? 3 : 'auto',
-                        justifyContent: 'center',
-                    }}
-                    >
-                    {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                    </ListItemIcon>
-                    <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
-                </ListItemButton>
-                </ListItem>
-            ))}
-            </List>
-            <Divider />
-            <List>
-            {['All mail', 'Trash', 'Spam'].map((text, index) => (
-                <ListItem key={text} disablePadding sx={{ display: 'block' }}>
-                <ListItemButton
-                    sx={{
-                    minHeight: 48,
-                    justifyContent: open ? 'initial' : 'center',
-                    px: 2.5,
-                    }}
-                >
-                    <ListItemIcon
-                    sx={{
-                        minWidth: 0,
-                        mr: open ? 3 : 'auto',
-                        justifyContent: 'center',
-                    }}
-                    >
-                    {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                    </ListItemIcon>
-                    <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
-                </ListItemButton>
-                </ListItem>
-            ))}
-            </List> */}
-          {/* Sidebar section */}
 
           <Stack
             sx={{
@@ -336,10 +210,10 @@ export default function Home() {
                   ...(!open && { display: "none" }),
                 }}
               >
-                {userHash ? `${userHash.slice(0, 18)}...` : ""}
+                {userAcc ? `${userAcc.slice(0, 7)}...${userAcc.slice(-7, -1)}` : ""}
               </h5>
               <IconButton
-                onClick={() => copyToClipboard(userHash)}
+                onClick={() => copyToClipboard(userAcc)}
                 sx={{ color: "white", ...(!open && { display: "none" }) }}
                 color="inherit"
                 aria-label="address-wallet"

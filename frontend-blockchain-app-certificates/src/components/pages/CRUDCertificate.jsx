@@ -1,23 +1,29 @@
-import {React, useState, useEffect} from "react";
-import { Box, Button, Divider, Typography, FormControl, Modal, Select, MenuItem } from "@mui/material";
-import IconButton from '@mui/material/IconButton';
-import { styled, useTheme } from '@mui/material/styles';
-import { StyledTextField, BootstrapInput } from "../../utils/styles";
-import PropTypes from 'prop-types';
-import QRCode from 'qrcode'
+import { React, useState, useEffect } from "react";
+import {
+  Box,Button, Divider, Typography, 
+  FormControl, Modal, Select, MenuItem
+}
+  from "@mui/material";
+import { useTheme } from '@mui/material/styles';
+import { StyledTextField, BootstrapInput } from "@utils/styles";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow
+} from '@mui/material';
 
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
-import TableRow from '@mui/material/TableRow';
+// Icons
+import IconButton from '@mui/material/IconButton';
 import PrintIcon from '@mui/icons-material/Print';
 
-import useAPIsCertificate from '../../hooks/useAPIsCertificate';
-import html_template_certificate from "../../utils/certificate-template/html_template"
-import {formatDate, formatDateWCity} from "../../utils/helpers"
+import QRCode from 'qrcode'
+import useAPIsCertificate from '@hooks/useAPIsCertificate';
+import html_template_certificate from "@utils/certificate-template/html_template"
+import { formatDate, formatDateWCity } from "@utils/helpers"
 
 
 const _url_background = import.meta.env.VITE_URL_BACKGROUND_CERTIFICATE;
@@ -27,12 +33,12 @@ const ContractAddress = import.meta.env.VITE_CONTRACT_ADDRESS_ACADEMIC_ISTER;
 
 const columnsTable = [
   { id: 'document_id', label: 'Identificación', minWidth: 70, align: 'center' },
-  { id: 'name', label: 'Nombre del Participante', minWidth: 170 , align: 'center' },
+  { id: 'name', label: 'Nombre del Participante', minWidth: 170, align: 'center' },
   { id: 'course', label: 'Curso', minWidth: 170, align: 'center' },
   { id: 'issued_at', label: 'Fecha de Emisión', minWidth: 80, align: 'center' },
-  // { id: 'token_id', label: 'Token ID', minWidth: 80, align: 'center' },
-  { id: 'tx_hash', label: 'Hash de la Tx', minWidth: 100, maxWidth: 150, align: 'center' },
-  {id: 'btns-section', label: 'Acciones', minWidth: 100, align: 'center'},
+  { id: 'token_id', label: 'Token ID', minWidth: 80, align: 'center' },
+  { id: 'tx_hash', label: 'Hash de la Transacción', minWidth: 100, maxWidth: 150, align: 'center' },
+  { id: 'btns-section', label: 'Acciones', minWidth: 100, align: 'center' },
 ]
 
 
@@ -60,6 +66,7 @@ const CRUDCertificate = () => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const theme = useTheme();
+
   let html_template = html_template_certificate;
 
   // API REST variables
@@ -67,7 +74,7 @@ const CRUDCertificate = () => {
     submitCertificate, getCertificatesPagination } = useAPIsCertificate();
 
   useEffect(() => {
-    getCertificatesPagination(page+1, rowsPerPage);
+    getCertificatesPagination(page + 1, rowsPerPage);
   }, [page, rowsPerPage]);
 
   useEffect(() => {
@@ -86,7 +93,7 @@ const CRUDCertificate = () => {
   }, [dataCertificate]);
 
 
-
+// Form variables to create certificate
   const [formData, setFormData] = useState({
     name: '',
     documentIdentification: '',
@@ -135,7 +142,7 @@ const CRUDCertificate = () => {
   const openCertificateHTML = async (rowData) => {
     try {
       let html_template_copy = html_template; // Copiar el template del certificado original
-    
+
       const url = `https://sepolia.etherscan.io/nft/${ContractAddress}/${rowData.token_id}`;
       const transactionHashQRCode = await QRCode.toDataURL(url);
       const transactionHashQRBase64 = transactionHashQRCode.split(',')[1];
@@ -157,7 +164,7 @@ const CRUDCertificate = () => {
 
       html_template = html_template.replace('{{transactionHashQRBase64}}', transactionHashQRBase64);
       html_template = html_template.replace('{{url-hash}}', url);
-    
+
       // Abrir una nueva pestaña con el HTML generado
       const newWindow = window.open();
       newWindow.document.open();
@@ -189,7 +196,7 @@ const CRUDCertificate = () => {
     >
       <Typography style={{ fontWeight: "bold" }}>CREAR CERTIFICADO</Typography>
       <Typography component={'div'} label="Input 1"
-                sx={{ minWidth: "20%" }}>Seleccione el contrato asociado a su billetera:</Typography>
+        sx={{ minWidth: "20%" }}>Seleccione el contrato asociado a su billetera:</Typography>
       <Box sx={{
         display: "flex", flexDirection: "row", gap: 2,
         paddingRight: "20%"
@@ -213,7 +220,7 @@ const CRUDCertificate = () => {
               value={contrato}
               label="Contrato *"
               onChange={(event) => setContrato(event.target.value)}
-              sx={{ minWidth: "90%"}}
+              sx={{ minWidth: "90%" }}
               input={<BootstrapInput />}
             >
               <MenuItem value="">
@@ -433,7 +440,7 @@ const CRUDCertificate = () => {
               />
             </Box>
             <Button
-            type="submit" disabled={loading}
+              type="submit" disabled={loading}
               sx={{
                 bgcolor: "#39C8C8",
                 "&:hover": { bgcolor: "#45EEEE" },
@@ -454,12 +461,12 @@ const CRUDCertificate = () => {
       {error && <p>Error: {error.message}</p>}
       {data && <p>Certificate issued successfully!</p>}
       <Modal
-      style={styleModal}
-      keepMounted
-      open={open} onClose={handleClose}
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:1029329151.
-      aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
+        style={styleModal}
+        keepMounted
+        open={open} onClose={handleClose}
+        // Suggested code may be subject to a license. Learn more: ~LicenseLog:1029329151.
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
       >
         <Box>
           <Typography id="keep-mounted-modal-title" variant="h6" component="h2">
@@ -514,28 +521,29 @@ const CRUDCertificate = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-                    {rows.map((row, index) => (
+              {rows.map((row, index) => (
                 <TableRow hover key={row.id}>
-                {columnsTable.map((column) => (
-                  <TableCell key={`${row.id}-${column.id}`} align={column.align} style={{ color: 'white' }}>
-                    {column.id === 'btns-section' ? (
-                      <IconButton onClick={() => openCertificateHTML(row)} color="inherit">
-                        {theme.direction === 'rtl' ? <PrintIcon color="inherit" /> : <PrintIcon />}
-                      </IconButton>
-                    ) : (
-                      column.id === 'issued_at' ? formatDate(row.issued_at) :
-                      column.id === 'tx_hash' ? (
-                        <a style={{color: 'white'}}
-                        href={`https://sepolia.etherscan.io/nft/${ContractAddress}/${row.token_id}`} target="_blank" rel="noopener noreferrer">
-                          {row[column.id]}
-                        </a>
+                  {columnsTable.map((column) => (
+                    <TableCell key={`${row.id}-${column.id}`} align={column.align} style={{ color: 'white' }}>
+                      {column.id === 'btns-section' ? (
+                        <IconButton onClick={() => openCertificateHTML(row)} color="inherit">
+                          {theme.direction === 'rtl' ? <PrintIcon color="inherit" /> : <PrintIcon />}
+                        </IconButton>
                       ) : (
-                        row[column.id] || '-' // Fallback value if cell is empty
-                      )
-                    )}
-                  </TableCell>
-                ))}
-              </TableRow>
+                        column.id === 'issued_at' ? formatDate(row.issued_at) :
+                          column.id === 'tx_hash' ? (
+                            <a style={{ color: 'white' }}
+                              href={`https://sepolia.etherscan.io/nft/${ContractAddress}/${row.token_id}`} target="_blank" rel="noopener noreferrer">
+                              {/* {row[column.id]} */}
+                              {`${row[column.id].slice(0, 7)}...${row[column.id].slice(-5)}`}
+                            </a>
+                          ) : (
+                            row[column.id] || '-' // Fallback value if cell is empty
+                          )
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
               ))}
             </TableBody>
           </Table>

@@ -1,39 +1,49 @@
-import { useState, useEffect, createContext,React} from 'react';
+import { React} from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 // import Header from './components/common/Header';
-import { useUserHash } from './contexts/UserHashContext';
+// import { useUserHash } from './contexts/UserHashContext';
+import { useAuthUser } from './contexts/AuthUserContext'; //Custom hook to manage context
 import './App.css'
+
+// Components
 import ConnectMetaMask from '@pages/ConnectWallet';
 import Home from '@pages/Home';
-import Web3 from 'web3';
+import PageNotFound from './components/pages/PageNotFound';
 
 const App = () => {
-  const { userHash } = useUserHash();
-
-  const web3 = new Web3(Web3.givenProvider);
-
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [ethWallet, setEthWallet] = useState(null);
-  const [userAcc, setUserAcc] = useState(null);
-  const [connectError, setConnectError] = useState(null);
-  
-  const contextVal = {
-    authenticated: loggedIn,
-    ethWallet: ethWallet,
-    userAcc: userAcc,
-    connectionErr: connectError,
-    mmLogin: connectWallet
-  };
+  // const { userHash } = useUserHash();
+  const { authenticated } = useAuthUser();
 
   return (
-    <Router>
-      {/* <Header /> */}
-      <Routes>
-        <Route path="/" element={userHash ? <Navigate to="/main" /> : <ConnectMetaMask />} />
-        <Route path="/main" element={userHash ? <Home /> : <Navigate to="/" />} />
-      </Routes>
-    </Router>
+      <Router>
+            <Routes>
+              <Route path="/" element={authenticated ? <Navigate to="/main" /> : <ConnectMetaMask />} />
+              <Route path="/main" element={authenticated ? <Home /> : <Navigate to="/" />} />
+              <Route path="*" element={PageNotFound}/>
+            </Routes>
+      </Router>
   );
 };
+
+// const App = () => {
+//   return (
+//     <AuthUserProvider>
+//       <Router>
+//         <AuthUserRoutes />
+//       </Router>
+//     </AuthUserProvider>
+//   );
+// };
+
+// const AuthUserRoutes = () => {
+//   const { authenticated } = useAuthUser();
+  
+//   return (
+//     <Routes>
+//       <Route path="/" element={authenticated ? <Navigate to="/main" /> : <ConnectMetaMask />} />
+//       <Route path="/main" element={authenticated ? <Home /> : <Navigate to="/" />} />
+//     </Routes>
+//   );
+// };
 
 export default App;

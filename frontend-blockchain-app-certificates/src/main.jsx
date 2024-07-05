@@ -4,11 +4,12 @@ import { UserHashProvider } from './contexts/UserHashContext';
 import App from './App.jsx'
 import './index.css'
 import '@fontsource/roboto/400.css';
+import AuthUserProvider from './contexts/AuthUserContext';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <UserHashProvider>
-      <App />
-    </UserHashProvider>
+    <AuthUserProvider>
+        <App />
+    </AuthUserProvider>
   </React.StrictMode>,
 )
