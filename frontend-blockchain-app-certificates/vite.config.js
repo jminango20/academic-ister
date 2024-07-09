@@ -24,6 +24,7 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@src': fileURLToPath(new URL('./src', import.meta.url)),
         '@services': fileURLToPath(new URL('./src/services', import.meta.url)),
+        '@smartContract': fileURLToPath(new URL('./src/smartContract', import.meta.url)),
         '@hooks': fileURLToPath(new URL('./src/hooks', import.meta.url)),
         '@contexts': fileURLToPath(new URL('./src/contexts', import.meta.url)),
         '@assets': fileURLToPath(new URL('./src/assets', import.meta.url)),

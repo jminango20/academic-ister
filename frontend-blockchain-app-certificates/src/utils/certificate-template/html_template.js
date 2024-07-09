@@ -155,7 +155,7 @@ const html_template_certificate = `
         }
 
         .hash-style {
-            font-size: 0.3cm;
+            font-size: 0.25cm;
         }
 
         .hash-style {
@@ -208,13 +208,15 @@ const html_template_certificate = `
             justify-content: space-around;
         }
         .col2{
+            /* position: absolute; */
             display: flex;
             flex-direction: column;
-            justify-content: end;
+            flex-end; /* Cambiado a 'flex-end' */
             align-items: flex-end;
             /* margin-left: 0.5cm; */
             padding-left: 0.99cm;
             padding-bottom: 0.5cm;
+            margin-top: 6cm;
         }
         .blockchain-banner-section {
             display: flex;
@@ -260,7 +262,7 @@ const html_template_certificate = `
                 <!-- <hr> -->
                 <div class="linea"></div>
                 <p class="montserrat-text">Por haber aprobado el curso <strong>{{course}}</strong>: {{description}}.</p>
-                <p class="montserrat-text" style="text-align: right;">{{issuedAt}}</p>
+                <p class="montserrat-text" style="text-align: right;"><strong>{{issuedAt}}</p>
                 <div class="signs-section">
                     <div>
                         <img style="max-width: 2.5cm;min-height: 2cm;max-height: 2cm;" src="{{url-sign-instructor}}" alt="Instructor sign">
@@ -275,12 +277,12 @@ const html_template_certificate = `
                         <p style="margin-top: -0.35cm;font-size: 0.35cm !important;" class="montserrat-text-sign">Director de Investigación</p>
                     </div>
                 </div>
+                <img style="max-width: 4.5cm;min-height: 2cm;max-height: 3cm; position: absolute;" src="https://res.cloudinary.com/dvjnqwzpc/image/upload/v1720475389/blockchain-webpage/sello_inv_hqyjmi.svg" alt="Instructor sign">
             </div>
-            
         </div>
         <div class="col2">
             <a href="{{url-hash}}" class="hash-style" target="_blank" rel="noopener noreferrer">Hash: {{transactionHash}}</a>
-            <img style="max-width: 1.5cm; border: white solid 0.01cm; border-radius: 5%;" src="data:image/png;base64,{{transactionHashQRBase64}}" alt="Transaction Hash QR Code">
+            <img style="max-width: 1.5cm; border: white solid 0.1cm; border-radius: 5%;" src="data:image/png;base64,{{transactionHashQRBase64}}" alt="Transaction Hash QR Code">
         </div>
     </div>
 </body>

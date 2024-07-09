@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 // import {us}
 // import { useMetaMask } from '../../hooks/useMetaMask';
 import '@assets/styles/connect-style.css';
@@ -7,41 +7,54 @@ import logo from '@assets/img/SVG_MetaMask_Icon_Color.svg';
 import logoIster from '@assets/img/logo-blanco.png';
 
 import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
-import Backdrop from '@mui/material/Backdrop';
-import CircularProgress from '@mui/material/CircularProgress';
+
+import Progress_loading from '@utils/Progress_loading';
 
 // Context
-import { useUserHash } from '../../contexts/UserHashContext';
 import { useAuthUser } from '@contexts/AuthUserContext';
-import { useContext } from 'react';
+// import { useUserHash } from '../../contexts/UserHashContext';
+// import { useContext } from 'react';
 // Context
 // import { AuthContext } from "@src/App";
 
 const ConnectMetaMask = () => {
   // const { account } = useMetaMask();
   // const { userHash, setUserHash } = useUserHash();
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
 
   const { mmLogin, connectionErr, ethWallet } = useAuthUser();
 
-  const handleClose = () => {
-    setOpen(false);
-  };
-  const handleOpen = () => {
-    setOpen(true);
-  };
+  const handleClose = () => setOpen(false);
+  const handleOpen = () => setOpen(true);
 
-  const connectWallet = () => {
+  // Use effect to update the open variable when the button is pressed
+  useEffect(() => {
+    if (ethWallet) {
+      handleClose();
+    }
+  }, [ethWallet]);
+
+  useEffect(() => {
+    if (connectionErr) {
+      handleClose();
+    }
+  }, [connectionErr]);
+
+
+  const connectWallet = async () => {
     handleOpen();
     
     if (window.ethereum) {
       try {
-        mmLogin();
+        const result = await mmLogin();
+        if (!result.success) {
+          handleClose();
+        }
+        
       } catch (error) {
-        console.error(error);
+        console.error("Error:", error);
         handleClose();
       }
     } else {
@@ -96,14 +109,15 @@ const ConnectMetaMask = () => {
         )
           }
       </Paper>
-      <Backdrop
+      <Progress_loading open={open} handleClose={handleClose} message="Conectando billetera Metamask ..." />
+      {/* <Backdrop
         sx={{display: 'flex', flexDirection: 'column', color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
         open={open}
         onClick={handleClose}
       >
         <p className='text-hint'>Conectando billetera Metamask ...</p>
         <CircularProgress color="inherit" />
-      </Backdrop>
+      </Backdrop> */}
     </Container>
   );
 };

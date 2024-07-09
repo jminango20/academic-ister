@@ -8,9 +8,6 @@ const provider = new ethers.providers.JsonRpcProvider(API_URL);
 const signer = new ethers.Wallet(PRIVATE_KEY, provider);
 const {abi} = require("./artifacts/contracts/contractApi.sol/contractApi.json");
 const contractInstance = new ethers.Contract(contractAddress, abi, signer);
-console.log("***********************")
-console.log("ABI:", abi)
-console.log("***********************")
 
 const express = require('express');
 const app = express();

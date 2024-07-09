@@ -31,7 +31,7 @@ const AuthUserProvider = ({ children }) => {
     if (ethereum) {
         const web3 = new Web3(ethereum);
         const userAcc = await web3.eth.getAccounts();
-        console.log(userAcc);
+        // console.log(userAcc);
       if (userAcc.length > 0) {
         setUserAcc(userAcc[0]);
         setLoggedIn(true);
@@ -51,7 +51,7 @@ const AuthUserProvider = ({ children }) => {
       if (!ethWallet) {
         const errMsg = "Por favor instala metamask en tu navegador (https://metamask.io/download/)";
         setConnectError(errMsg);
-        return;
+        return true;
       }
 
       await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -61,11 +61,11 @@ const AuthUserProvider = ({ children }) => {
       if (connectError !== null) { setConnectError(null); }
 
       window.location.reload(false);
-      return;
+      return true;
     } catch (error) {
       setConnectError(error.message);
-      console.error(error);
-      return;
+      console.error("Error metamask:", error);
+      return false;
     }
   }
 
