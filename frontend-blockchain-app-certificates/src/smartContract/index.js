@@ -1,17 +1,19 @@
-let academicCertificateABI = null;
+let academicCertificateI_abi = null;
 
-// Función para cargar la ABI desde academicCertificateABI.json usando fetch
-async function loadAcademicCertificateABI() {
-  try {
-    const response = await fetch('/src/smartContract/academicCertificateABI.json');
-    const data = await response.json();
-    academicCertificateABI = data.abi;
-  } catch (error) {
-    console.error('Error al cargar academicCertificateABI:', error);
-  }
+// Función para cargar la ABI desde academicCertificateI_abi.json usando fetch
+function loadAcademicCertificateI_ABI() {
+  return fetch('/src/smartContract/academicCertificateI_abi.json')
+    .then(response => response.json())
+    .then(data => {
+      academicCertificateI_abi = data.abi;
+      console.log('ABI loaded:', academicCertificateI_abi);
+      return academicCertificateI_abi; // Devuelve la ABI cargada
+    })
+    .catch(error => {
+      console.error('Error al cargar academicCertificateI_abi:', error);
+      throw error; // Lanza el error para manejarlo en la llamada
+    });
 }
 
-// Llama a la función para cargar la ABI al iniciar la aplicación
-loadAcademicCertificateABI();
-
-export { academicCertificateABI };
+// Exporta la función en lugar de la ABI directamente
+export { loadAcademicCertificateI_ABI };

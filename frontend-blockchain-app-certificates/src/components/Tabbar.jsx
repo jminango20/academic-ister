@@ -8,6 +8,7 @@ import CRUDCertificate from "./pages/CRUDCertificate";
 import { CssBaseline, Typography } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import {COLORS} from '../config'
+import Herramientas from './pages/Herramientas';
 
 const theme_modif = createTheme({
   palette: {
@@ -87,7 +88,7 @@ export default function TabbarNavigation() {
           <CRUDCertificate/>
         </CustomTabPanel>
         <CustomTabPanel value={value} index={2}>
-          Item Three
+          <Herramientas/>
         </CustomTabPanel>
       </Box>
     </ThemeProvider>

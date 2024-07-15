@@ -32,6 +32,25 @@ export const getAllCertificates = async (page, limit) => {
   }
 };
 
+export const getAllContracts = async () => {
+  try {
+    const url = new URL(`${API_BASE_URL}/academic/get_allcontracts`);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: getHeaders(),
+    })
+
+    if (!response.ok) {
+      throw new Error('Error fetching contracts');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Ocurrió el siguiente error:',error);
+    throw error;
+  }
+};
+
 export const createCertificate = async (data) => {
   
   try {
@@ -50,3 +69,23 @@ export const createCertificate = async (data) => {
     throw error;
   }
 };
+
+export const createContract = async (data) => {
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/academic/issueContract`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    // console.log(response)
+    if (!response.ok) {
+      throw new Error('Error al agregar el contrato a la base de datos');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+

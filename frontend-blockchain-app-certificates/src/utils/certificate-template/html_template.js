@@ -261,7 +261,14 @@ const html_template_certificate = `
                 <h1 class="participant-name"><strong>{{name}}</strong></h1>
                 <!-- <hr> -->
                 <div class="linea"></div>
-                <p class="montserrat-text">Por haber aprobado el curso <strong>{{course}}</strong>: {{description}}.</p>
+                <p class="montserrat-text">Por haber aprobado del {{description}}, el curso <strong>"{{course2}}"</strong>:</p>
+                <!--<p class="montserrat-text">Por haber aprobado el curso <strong>{{course}}</strong>:</p>
+                <p  class="montserrat-text">{{description}}</p>-->
+                <!-- Modo 1 -->
+                <!-- <p class="montserrat-text">Por haber aprobado el curso <strong>{{course2}}</strong>:</p>
+                <p style="margin-left: 0.5cm;" class="montserrat-text">{{description}}</p> -->
+                <!-- Modo 2 -->
+                <!-- end modos -->
                 <p class="montserrat-text" style="text-align: right;"><strong>{{issuedAt}}</p>
                 <div class="signs-section">
                     <div>
@@ -270,6 +277,9 @@ const html_template_certificate = `
                         <p style="margin-top: 0cm;font-size: 0.4cm !important;" class="montserrat-text-sign"><strong>PhD. Juan Minango</strong></p>
                         <p style="margin-top: -0.35cm;font-size: 0.35cm !important;" class="montserrat-text-sign">Instructor del curso</p>
                     </div>
+                    <div class="sello">
+                        <img style="max-width: 4.5cm;min-height: 2cm;max-height: 3cm;" src="https://res.cloudinary.com/dvjnqwzpc/image/upload/v1720475389/blockchain-webpage/sello_inv_hqyjmi.svg" alt="Instructor sign">
+                    </div>
                     <div>
                         <img style="max-width: auto; min-height: 2cm;max-height: 2cm;" src="{{url-sign-director}}" alt="director sign">
                         <div class="sign-linea"></div>
@@ -277,7 +287,6 @@ const html_template_certificate = `
                         <p style="margin-top: -0.35cm;font-size: 0.35cm !important;" class="montserrat-text-sign">Director de Investigación</p>
                     </div>
                 </div>
-                <img style="max-width: 4.5cm;min-height: 2cm;max-height: 3cm; position: absolute;" src="https://res.cloudinary.com/dvjnqwzpc/image/upload/v1720475389/blockchain-webpage/sello_inv_hqyjmi.svg" alt="Instructor sign">
             </div>
         </div>
         <div class="col2">

@@ -22,9 +22,10 @@ import PrintIcon from '@mui/icons-material/Print';
 
 import QRCode from 'qrcode'
 import useAPIsCertificate from '@hooks/useAPIsCertificate';
+import useAPIsContract from '@hooks/useAPIsContract';
 import html_template_certificate from "@utils/certificate-template/html_template"
 import { formatDate, formatDateWCity } from "@utils/helpers"
-import { callContractCreateCertificate } from "@services/web3_service";
+import { callContractCreateCertificate, getInstitutionName } from "@services/web3_service";
 import { useAuthUser } from "@contexts/AuthUserContext";
 import Progress_loading from '@utils/Progress_loading';
 import CancelTransactionDialogSlide from "@utils/AlertDialogSlide";
@@ -34,6 +35,7 @@ const _url_background = import.meta.env.VITE_URL_BACKGROUND_CERTIFICATE;
 const _sign_instructor = import.meta.env.VITE_URL_SIGN_INSTRUCTOR;
 const _sign_director = import.meta.env.VITE_URL_SIGN_DIRECTOR;
 const ContractAddress = import.meta.env.VITE_CONTRACT_ADDRESS_ACADEMIC_ISTER;
+
 const columnsTable = [
   { id: 'document_id', label: 'Identificación', minWidth: 70, align: 'center' },
   { id: 'name', label: 'Nombre del Participante', minWidth: 170, align: 'center' },
@@ -68,31 +70,44 @@ const styleModal = {
 const CRUDCertificate = () => {
 
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(4);
   const [rows, setRows] = useState([]);
   const [totalCertificates, setTotalCertificates] = useState(0);
   const [open, setOpen] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
-  const [contrato, setContrato] = useState('');
-  const [openCreateSection, setopenCreateSection] = useState(false)
+  const [openCreateSection, setOpenCreateSection] = useState(false)
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const handleOpenDialog = () => setOpenDialog(true);
   const handleCloseDialog = () => setOpenDialog(false);
-  const handleOpenCreateSection = () => setopenCreateSection(true);
-  const handleCloseCreateSection = () => setopenCreateSection(false);
+  const handleCloseCreateSection = () => setOpenCreateSection(false);
+  
+  const [contracts, setContracts] = useState([]);
+  const [contrato, setContrato] = useState('');
+  const [contractHash, setContractHash] = useState('');
+  const [isSelectDisabled, setIsSelectDisabled] = useState(false);
+  const [buttonText, setButtonText] = useState('USAR CONTRATO');
+
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const theme = useTheme();
-
+  
   const { userAcc, ethWallet, connectionErr } = useAuthUser();
-
+  
   let html_template = html_template_certificate;
-
+  
+  const handleOpenCreateSection = () => {
+    getContracts();
+    setOpenCreateSection(true);
+  };
 
   // API REST variables
   const { data, loading, error, dataCertificate, loadingData, errorData,
     submitCertificate, getCertificatesPagination } = useAPIsCertificate();
+  
+  const { dataContract, loadingDataContract, errorDataContract, getContracts } = useAPIsContract();
+
+  
 
   // #region USE_EFFECT_SECTION
   // Use effect to update the open variable when the button is pressed
@@ -127,10 +142,20 @@ const CRUDCertificate = () => {
     }
   }, [dataCertificate]);
 
+  // USE EFFECT for contracts
   useEffect(() => {
-    console.log(openCreateSection);
-  }, [openCreateSection]);
-  
+    if (dataContract && dataContract.contracts) {
+      setContracts(dataContract.contracts || []);
+    }
+  }, [dataContract?.contracts]);
+
+  useEffect(() => {
+    if (dataContract) {
+      if (dataContract.contracts) {
+        setContracts(dataContract.contracts);
+      }
+    }
+  }, [dataContract]);
 
   // #endregion
 
@@ -141,6 +166,10 @@ const CRUDCertificate = () => {
     documentIdentification: '',
     course: '',
     description: '',
+    //name, documentIdentification, course, description, 
+    tokenId: '', 
+    transactionHash: '', 
+    contract_address: '',
   });
 
   const handleChange = (e) => {
@@ -153,7 +182,10 @@ const CRUDCertificate = () => {
       }
     }
 
-    setFormData({ ...formData, [name]: value });
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -180,14 +212,29 @@ const CRUDCertificate = () => {
     // html_template = html_template.replace('{{transactionHashQRBase64}}', transactionHashQRBase64);
     // html_template = html_template.replace('{{url-hash}}', url);
     try {
-      // callContractCreateCertificate(userAcc, formData);
-      const receipt = await callContractCreateCertificate(userAcc, formData);
-      console.log(receipt);
-      setModalMessage('La transacción se realizó correctamente.');
-      // Almacenar datos en DB
-      // submitCertificate(formData);
-      // setOpen(false);
-      handleOpenDialog();
+      console.log(userAcc, contractHash, formData);
+      console.log("INSTITUITON NAME");
+      const instituiton = await getInstitutionName();
+      const [tokenId, txHash] = await callContractCreateCertificate(userAcc, contractHash, formData);
+      console.log("TOKEN ID:", tokenId);
+      console.log("TX HASH:", txHash);
+      if (tokenId != null) {
+        setFormData(prevState => ({
+          ...prevState,
+          tokenId: tokenId,
+          transactionHash: txHash
+        }));
+        console.log("FORMDATA:", formData);
+        // Almacenar datos en DB
+        submitCertificate({
+          ...formData,
+          tokenId: tokenId,
+          transactionHash: txHash
+        });
+        setModalMessage('La transacción se realizó correctamente.');
+        // setOpen(false);
+        handleOpenDialog();
+      }
     } catch (error) {
       setModalMessage(`Error al crear el certificado: ${error.message}`);
       console.log(error);
@@ -202,16 +249,18 @@ const CRUDCertificate = () => {
     try {
       let html_template_copy = html_template; // Copiar el template del certificado original
 
-      const url = `https://sepolia.etherscan.io/nft/${ContractAddress}/${rowData.token_id}`;
+      const url = `https://polygonscan.com/nft/${ContractAddress}/${rowData.token_id}`;
       const transactionHashQRCode = await QRCode.toDataURL(url);
       const transactionHashQRBase64 = transactionHashQRCode.split(',')[1];
+      const course = rowData.course;
 
       // Reemplazar los placeholders con los datos de la fila específica
       html_template_copy = html_template_copy.replace('{{web-title}}', `certificado-curso-${rowData.course}-${rowData.name}`);
       html_template_copy = html_template_copy.replace('{{name}}', rowData.name);
       html_template_copy = html_template_copy.replace('{{documentIdentification}}', rowData.documentIdentification);
       html_template_copy = html_template_copy.replace('{{course}}', rowData.course);
-      html_template_copy = html_template_copy.replace('{{course2}}', rowData.course);
+      html_template_copy = html_template_copy.replace('{{course2}}', course);
+      html_template_copy = html_template_copy.replace('{{description}}', rowData.description);
       html_template_copy = html_template_copy.replace('{{description}}', rowData.description);
       html_template_copy = html_template_copy.replace('{{issuedAt}}', formatDateWCity('Sangolquí', rowData.issued_at));
       html_template_copy = html_template_copy.replace('{{transactionHash}}', rowData.tx_hash);
@@ -241,6 +290,41 @@ const CRUDCertificate = () => {
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
+  };
+
+  const handleSelectChange = (event) => {
+    const selectedContractId = event.target.value;
+    setContrato(selectedContractId);
+    const selectedContract = contracts.find(contract => contract.idcontract === selectedContractId);
+    if (selectedContract) {
+      setContractHash(selectedContract.addresscontract);
+    }
+  };
+
+  const handleButtonClick = () => {
+    if (isSelectDisabled) {
+      // Permitir seleccionar de nuevo
+      setIsSelectDisabled(false);
+      setButtonText('USAR CONTRATO');
+      setContrato('');
+      setContractHash('');
+      setFormData(prevState => ({
+        ...prevState,
+        contract_address: ''
+      }));
+      console.log(formData);
+    } else {
+      // Deshabilitar selección
+      setIsSelectDisabled(true);
+      setButtonText('CAMBIAR DE CONTRATO');
+      const selectedContract = contracts.find(contract => contract.idcontract === contrato);
+      if (selectedContract) {
+        setFormData(prevState => ({
+          ...prevState,
+          contract_address: selectedContract.addresscontract
+        }));
+      }
+    }
   };
 
   return (
@@ -292,24 +376,27 @@ const CRUDCertificate = () => {
     
               }}
             >
-              <Typography component={'span'} label="Input 1">CONTRACT ADDRESS</Typography>
-              <FormControl required sx={{ minWidth: "90%" }}>
-                <Select
-                  labelId="demo-select-small-label"
-                  id="demo-select-small"
-                  value={contrato}
-                  label="Contrato *"
-                  onChange={(event) => setContrato(event.target.value)}
-                  sx={{ minWidth: "90%" }}
-                  input={<BootstrapInput />}
-                >
-                  <MenuItem value="">
-                    <em></em>
+              <Typography component={'span'} label="Input 1">NOMBRE DEL CONTRATO</Typography>
+              <FormControl required sx={{ minWidth: "90%" }} disabled={isSelectDisabled}>
+              <Select
+                labelId="demo-select-small-label"
+                id="demo-select-small"
+                value={contrato}
+                label="Contrato *"
+                onChange={handleSelectChange}
+                sx={{ minWidth: "90%" }}
+                input={<BootstrapInput />}
+                enab
+              >
+                <MenuItem value="">
+                  <em>Ninguno</em>
+                </MenuItem>
+                {contracts.map((contract) => (
+                  <MenuItem key={contract.idcontract} value={contract.idcontract}>
+                    {contract.namecontract}
                   </MenuItem>
-                  <MenuItem value={10}>Contrato 1</MenuItem>
-                  <MenuItem value={20}>Contrato 2</MenuItem>
-                  <MenuItem value={30}>Contrato 3</MenuItem>
-                </Select>
+                ))}
+              </Select>
               </FormControl>
               {/* <StyledTextField
                 label="Contract address"
@@ -337,9 +424,9 @@ const CRUDCertificate = () => {
                 minWidth: "33.33%",
               }}
             >
-              <Typography component={'div'} label="Input 1">INSTITUCIÓN</Typography>
+              <Typography component={'div'} label="Input 1">HASH DEL CONTRATO</Typography>
               <StyledTextField
-                label="Contract name"
+                label="Contract hash"
                 InputLabelProps={{
                   style: { color: "white" },
                 }}
@@ -348,6 +435,7 @@ const CRUDCertificate = () => {
                   readOnly: true,
                 }}
                 defaultValue=""
+                value={contractHash}
                 size="small"
                 id="outlined-disabled"
                 sx={{ minWidth: "90%" }}
@@ -365,162 +453,204 @@ const CRUDCertificate = () => {
             >
               <Button
                 sx={{
-                  bgcolor: "#39C8C8",
-                  "&:hover": { bgcolor: "#45EEEE" },
+                  bgcolor: !isSelectDisabled ? "#39C8C8" : "#227878",
+                  "&:hover": { bgcolor: !isSelectDisabled ? "#45EEEE": "#2da0a0" },
                   minWidth: "60%",
                   minHeight: "70%",
                   maxWidth: "3rem",
                   marginTop: "2rem"
                 }}
-                color="primary"
+                // color="primary"
                 variant="contained"
+                onClick={handleButtonClick}
               >
-                USAR CONTRATO
+                {buttonText}
               </Button>
             </Box>
           </Box>
           {/* END FIRST SECTION */}
           <Divider color="white" />
-          <FormControl component="form" onSubmit={handleSubmit}>
-            <Typography style={{ fontWeight: "bold" }}>CAMPOS DEL CERTIFICADO</Typography>
-            <Box sx={{
-              display: "flex", flexDirection: "row", gap: 2,
-              paddingRight: "20%", minWidth: '100%'
-            }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "flex-start",
-                  alignItems: "center",
-                  gap: 2,
-                  minWidth: "100%",
-                }}
-              >
+          {isSelectDisabled ? (
+            <FormControl component="form" onSubmit={handleSubmit}>
+              <Typography style={{ fontWeight: "bold", marginBottom: "15px" }}>CAMPOS DEL CERTIFICADO</Typography>
+              <Box sx={{
+                display: "flex", flexDirection: "row", gap: 2,
+                paddingRight: "20%", minWidth: '100%'
+              }}>
                 <Box
                   sx={{
                     display: "flex",
-                    flexDirection: "row",
+                    flexDirection: "column",
                     justifyContent: "flex-start",
                     alignItems: "center",
                     gap: 2,
                     minWidth: "100%",
                   }}
                 >
-                  <Typography component={'div'} label="Input 1"
-                    sx={{ minWidth: "20%" }}>Nombre</Typography>
-                  <StyledTextField
-                    label="Ingrese el nombre y apellido del beneficiario"
-                    InputLabelProps={{
-                      style: { color: "white" },
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "row",
+                      justifyContent: "flex-start",
+                      alignItems: "center",
+                      gap: 2,
+                      minWidth: "100%",
                     }}
-                    InputProps={{
-                      readOnly: false,
-                      style: { color: "white" },
+                  >
+                    <Typography component={'div'} label="Input 1"
+                      sx={{ minWidth: "20%" }}>Nombre</Typography>
+                    <StyledTextField
+                      label="Ingrese el nombre y apellido del beneficiario"
+                      InputLabelProps={{
+                        style: { color: "white" },
+                      }}
+                      InputProps={{
+                        readOnly: false,
+                        style: { color: "white" },
+                      }}
+                      name="name"
+                      defaultValue=""
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      size="small"
+                      id="outlined-disabled"
+                      sx={{ minWidth: "40%" }}
+                    />
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "row",
+                      justifyContent: "flex-start",
+                      alignItems: "center",
+                      gap: 2,
+                      minWidth: "100%",
                     }}
-                    name="name"
-                    defaultValue=""
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    size="small"
-                    id="outlined-disabled"
-                    sx={{ minWidth: "40%" }}
-                  />
+                  >
+                    <Typography component={'div'} label="Input 1"
+                      sx={{ minWidth: "20%" }}>Cédula</Typography>
+                    <StyledTextField
+                      label="Ingrese el número de cédula"
+                      InputLabelProps={{
+                        style: { color: "white" },
+                      }}
+                      InputProps={{
+                        style: { color: "white" },
+                      }}
+                      name="documentIdentification"
+                      defaultValue=""
+                      value={formData.documentIdentification}
+                      required
+                      onChange={handleChange}
+                      size="small"
+                      id="outlined-disabled"
+                      sx={{ minWidth: "40%" }}
+                    />
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "row",
+                      justifyContent: "flex-start",
+                      alignItems: "center",
+                      gap: 2,
+                      minWidth: "100%",
+                    }}
+                  >
+                    <Typography component={'div'} label="Input 1"
+                      sx={{ minWidth: "20%" }}>Nombre del Curso</Typography>
+                    <StyledTextField
+                      label="Ingrese el nombre del curso"
+                      InputLabelProps={{
+                        style: { color: "white" },
+                      }}
+                      InputProps={{
+                        style: { color: "white" },
+                      }}
+                      defaultValue=""
+                      name="course"
+                      value={formData.course}
+                      onChange={handleChange}
+                      required
+                      size="small"
+                      id="outlined-disabled"
+                      sx={{ minWidth: "40%" }}
+                    />
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "row",
+                      justifyContent: "flex-start",
+                      alignItems: "center",
+                      gap: 2,
+                      minWidth: "100%",
+                    }}
+                  >
+                    <Typography component={'div'} label="Input 1"
+                      sx={{ minWidth: "20%" }}>Descripción</Typography>
+                    <StyledTextField
+                      label="Ingrese una descripción del curso"
+                      InputLabelProps={{
+                        style: { color: "white" },
+                      }}
+                      InputProps={{
+                        style: { color: "white" },
+                      }}
+                      defaultValue=""
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      required
+                      size="small"
+                      id="outlined-disabled"
+                      aria-describedby="my-helper-text"
+                      sx={{ minWidth: "40%" }}
+                    />
+                  </Box>
+                  <Button
+                    type="submit" disabled={loading}
+                    sx={{
+                      bgcolor: "#39C8C8",
+                      "&:hover": { bgcolor: "#45EEEE" },
+                      minWidth: "20%",
+                      minHeight: "20%",
+                      maxWidth: "45",
+                      marginBottom: "2rem",
+                      // marginTop: "2rem"
+                    }}
+                    color="primary"
+                    variant="contained"
+                  >
+                    {loading ? 'CREANDO CERTIFICADO...' : 'CREAR CERTIFICADO'}
+                  </Button>
                 </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    justifyContent: "flex-start",
-                    alignItems: "center",
-                    gap: 2,
-                    minWidth: "100%",
-                  }}
-                >
-                  <Typography component={'div'} label="Input 1"
-                    sx={{ minWidth: "20%" }}>Cédula</Typography>
-                  <StyledTextField
-                    label="Ingrese el número de cédula"
-                    InputLabelProps={{
-                      style: { color: "white" },
-                    }}
-                    InputProps={{
-                      style: { color: "white" },
-                    }}
-                    name="documentIdentification"
-                    defaultValue=""
-                    value={formData.documentIdentification}
-                    required
-                    onChange={handleChange}
-                    size="small"
-                    id="outlined-disabled"
-                    sx={{ minWidth: "40%" }}
-                  />
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    justifyContent: "flex-start",
-                    alignItems: "center",
-                    gap: 2,
-                    minWidth: "100%",
-                  }}
-                >
-                  <Typography component={'div'} label="Input 1"
-                    sx={{ minWidth: "20%" }}>Nombre del Curso</Typography>
-                  <StyledTextField
-                    label="Ingrese el nombre del curso"
-                    InputLabelProps={{
-                      style: { color: "white" },
-                    }}
-                    InputProps={{
-                      style: { color: "white" },
-                    }}
-                    defaultValue=""
-                    name="course"
-                    value={formData.course}
-                    onChange={handleChange}
-                    required
-                    size="small"
-                    id="outlined-disabled"
-                    sx={{ minWidth: "40%" }}
-                  />
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    justifyContent: "flex-start",
-                    alignItems: "center",
-                    gap: 2,
-                    minWidth: "100%",
-                  }}
-                >
-                  <Typography component={'div'} label="Input 1"
-                    sx={{ minWidth: "20%" }}>Descripción</Typography>
-                  <StyledTextField
-                    label="Ingrese una descripción del curso"
-                    InputLabelProps={{
-                      style: { color: "white" },
-                    }}
-                    InputProps={{
-                      style: { color: "white" },
-                    }}
-                    defaultValue=""
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    required
-                    size="small"
-                    id="outlined-disabled"
-                    aria-describedby="my-helper-text"
-                    sx={{ minWidth: "40%" }}
-                  />
-                </Box>
-                <Button
-                  type="submit" disabled={loading}
+              </Box>
+            </FormControl>
+          ):
+          (<></>)}
+            <Progress_loading open={open} handleClose={handleClose} message="Creando certificado ..." />
+            {error && <p>Error: {error.message}</p>}
+            {data && <p>Certificate issued successfully!</p>}
+            {/* <Modal
+              style={styleModal}
+              keepMounted
+              open={modalOpen} onClose={handleModalClose}
+              // Suggested code may be subject to a license. Learn more: ~LicenseLog:1029329151.
+              aria-labelledby="modal-modal-title"
+              aria-describedby="modal-modal-description"
+            >
+              <Box>
+                <Typography id="keep-mounted-modal-title" variant="h6" component="h2">
+                  ¿Desea ver el certificado?
+                </Typography>
+                <Typography id="modal-modal-description" variant="h6" component="h2">
+                  {modalMessage}
+                </Typography>
+                {/* Button to open html code store uin const html_certificate in new tab */}
+            {/* <Button
+                  onClick={() => window.open(html_template, '_blank')}
                   sx={{
                     bgcolor: "#39C8C8",
                     "&:hover": { bgcolor: "#45EEEE" },
@@ -533,53 +663,16 @@ const CRUDCertificate = () => {
                   color="primary"
                   variant="contained"
                 >
-                  {loading ? 'CREANDO CERTIFICADO...' : 'CREAR CERTIFICADO'}
+                  VER CERTIFICADO
                 </Button>
+      
+      
               </Box>
-            </Box>
-          </FormControl>
-          <Progress_loading open={open} handleClose={handleClose} message="Creando certificado ..." />
-          {error && <p>Error: {error.message}</p>}
-          {data && <p>Certificate issued successfully!</p>}
-          {/* <Modal
-            style={styleModal}
-            keepMounted
-            open={modalOpen} onClose={handleModalClose}
-            // Suggested code may be subject to a license. Learn more: ~LicenseLog:1029329151.
-            aria-labelledby="modal-modal-title"
-            aria-describedby="modal-modal-description"
-          >
-            <Box>
-              <Typography id="keep-mounted-modal-title" variant="h6" component="h2">
-                ¿Desea ver el certificado?
-              </Typography>
-              <Typography id="modal-modal-description" variant="h6" component="h2">
-                {modalMessage}
-              </Typography>
-              {/* Button to open html code store uin const html_certificate in new tab */}
-          {/* <Button
-                onClick={() => window.open(html_template, '_blank')}
-                sx={{
-                  bgcolor: "#39C8C8",
-                  "&:hover": { bgcolor: "#45EEEE" },
-                  minWidth: "20%",
-                  minHeight: "20%",
-                  maxWidth: "45",
-                  marginBottom: "2rem",
-                  // marginTop: "2rem"
-                }}
-                color="primary"
-                variant="contained"
-              >
-                VER CERTIFICADO
-              </Button>
-    
-    
-            </Box>
-          </Modal> */}
-          <CancelTransactionDialogSlide open={openDialog} handleClose={handleCloseDialog} />
+            </Modal> */}
+            <CancelTransactionDialogSlide open={openDialog} handleClose={handleCloseDialog} />
         </>
-      )}
+      )
+      }
 
       {/* END CREATE CERTIFICATE */}
       <Typography style={{ fontWeight: "bold" }}>LISTA DE CERTIFICADOS</Typography>
@@ -638,7 +731,7 @@ const CRUDCertificate = () => {
         </TableContainer>
         <TablePagination
           style={{ color: 'white' }}
-          rowsPerPageOptions={[5, 10, 15]}
+          rowsPerPageOptions={[4, 8, 15]}
           component="div"
           count={totalCertificates}
           rowsPerPage={rowsPerPage}

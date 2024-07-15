@@ -12,6 +12,69 @@ const { academicContract, provider, wallet } = require('../models/academicCertif
 const responseHandler = require('../views/responseHandler');
 
 exports.issueCertificate = async (req, res) => {
+    const { name, documentIdentification, course, description, tokenId, transactionHash, contract_address } = req.body;
+    const timestamp = Date.now();
+    const humanReadableTimestamp = new Date(timestamp).toISOString();
+
+    try {
+         // Buscar el id_contract basado en el contract_address
+         const { rows } = await pool.query(
+            'SELECT idcontract FROM contracts WHERE addresscontract = $1',
+            [contract_address]
+        );
+
+        if (rows.length === 0) {
+            throw new Error('No contract found with the provided address');
+        }
+
+        const id_contract = rows[0].idContract;
+
+        // Insertar el nuevo registro en la tabla certificates
+        const insertQuery = `
+            INSERT INTO certificates (name, document_id, course, description, issued_at, token_id, tx_hash, id_contract)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `;
+
+        const values = [
+            name,
+            documentIdentification,
+            course,
+            description,
+            humanReadableTimestamp,
+            tokenId,
+            transactionHash,
+            id_contract
+        ];
+
+        await pool.query(insertQuery, values);
+
+        // await pool.query('
+        // // Consulta para optener el valor de id_contract buscando en la tabla contracts por el addressContract = contract_address
+
+        // INSERT INTO certificates (name, document_id, course, description, issued_at, token_id, tx_hash, id_contract) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        // ', 
+        //     [name, documentIdentification, course, description, humanReadableTimestamp, tokenId, transactionHash, id_contract]);
+
+    
+        responseHandler.success(res, {
+            message: "Academic Certificate deployed successfully",
+            transactionHash: receipt.transactionHash,
+            tokenId: tokenId,
+        });
+    } catch (error) {
+        if (error.message.includes('Certificate already exists')) {
+            responseHandler.error(res, {message:'Certificate already exists'});
+        } else if (error.message.includes('Insufficient funds for intrinsic transaction cost')) {
+            responseHandler.error(res, {message:'Insufficient funds for the transaction'});
+            console.error("Insufficient funds for the transaction");
+        } else {
+            responseHandler.error(res, error);
+            console.error(error.message);
+        }
+    }
+};
+
+exports.issueCertificate_bak = async (req, res) => {
     const { name, documentIdentification, course, description } = req.body;
     const timestamp = Date.now();
     const humanReadableTimestamp = new Date(timestamp).toISOString();
@@ -230,6 +293,57 @@ exports.getAllCertificatesMetadataDB = async (req, res) => {
         } else {
             const certificates = result.rows;
             responseHandler.success(res, { certificates, totalCertificates });
+        }
+    } catch (error) {
+        responseHandler.error(res, error.message);
+    }
+};
+
+//CONTRACTS CONTROLLERS
+exports.issueContract = async (req, res) => {
+    const { name, contract_address, contract_factory_address } = req.body;
+
+    try {
+        // Insertar el nuevo registro en la tabla contracts
+        const insertQuery = `
+            INSERT INTO contracts (nameContract, addressContract, addressContractFactory, active)
+            VALUES ($1, $2, $3, true);
+        `;
+
+        const values = [
+            name,
+            contract_address,
+            contract_factory_address
+        ];
+
+        await pool.query(insertQuery, values);
+
+    
+        responseHandler.success(res, {
+            message: "Academic Contract added successfully",
+            result: true
+        });
+    } catch (error) {
+        responseHandler.error(res, error);
+        console.error(error.message);
+    }
+};
+
+// Query to get all metadata certificates from DB
+exports.getAllContractsDB = async (req, res) => {
+
+    try {
+        const client = await pool.connect();
+        // Consulta para obtener los registros
+        const result = await client.query('SELECT * FROM contracts ORDER BY idcontract DESC');
+        
+        client.release();
+
+        if (result.rows.length === 0) {
+            responseHandler.error(res, { message: 'Contracts not registered' });
+        } else {
+            const contracts = result.rows;
+            responseHandler.success(res, { contracts });
         }
     } catch (error) {
         responseHandler.error(res, error.message);

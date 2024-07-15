@@ -8,7 +8,7 @@ async function main() {
   await academicFactory_.deployed();
 
   console.log(
-    `Contract Academic Factory Address:  ${academicFactory_.address}`
+    `Contract Academic Factory Testnet Address:  ${academicFactory_.address}`
   );
 }
 

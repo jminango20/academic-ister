@@ -15,6 +15,16 @@ module.exports = {
       accounts: [`0x${PRIVATE_KEY}`],
       gas: 2100000,
       gasPrice: 8000000000
-    }
+    },
+    polygon_amoy: {
+      url: API_URL,
+      accounts: [`0x${PRIVATE_KEY}`],
+      gas: 8000000,
+      gasPrice: 5000000000,
+    },
+    matic: {
+      url: API_URL,
+      accounts: [`0x${PRIVATE_KEY}`],
+    }  
   }
 };
