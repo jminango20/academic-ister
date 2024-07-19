@@ -100,10 +100,8 @@ const useCopyToClipboard = () => {
     try {
       await navigator.clipboard.writeText(content);
       setIsCopied(true);
-      console.log('Copied to clipboard:', content);
     } catch (error) {
       setIsCopied(false);
-      console.error('Unable to copy to clipboard:', error);
     }
   };
 

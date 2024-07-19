@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createCertificate, getAllCertificates } from '../api';
+import { createCertificate, getAllCertificates, getAllCertificates_ByType } from '../api';
 
 const useAPIsCertificate = () => {
   const [data, setData] = useState(null);
@@ -35,8 +35,21 @@ const useAPIsCertificate = () => {
     }
   }
 
+  const getCertificatesPagination_ByType = async (page, limit, type) => {
+    setLoadingData(true);
+    try {
+      const result = await getAllCertificates_ByType(page, limit, type);
+      setDataCertificate(result.data);
+    } catch (err) {
+      setErrorData(err);
+      console.log("Error:", err);
+    } finally {
+      setLoadingData(false);
+    }
+  }
+
   return { data, loading, error, submitCertificate, 
-    dataCertificate, loadingData, errorData, getCertificatesPagination };
+    dataCertificate, loadingData, errorData, getCertificatesPagination, getCertificatesPagination_ByType };
 };
 
 

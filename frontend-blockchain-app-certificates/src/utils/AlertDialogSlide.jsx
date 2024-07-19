@@ -46,12 +46,8 @@ const SucessfullyTransactionDialogSlide = ({ open, handleClose, openCertificate 
           La transacción fue aprobada por el usuario.
         </DialogContentText>
       </DialogContent>
-      <DialogActions>
-        {/* <Button onClick={handleClose}>Disagree</Button> */}
-        <Button onClick={openCertificate}>Imprimir certificado</Button>
-      </DialogActions>
     </Dialog>
   );
 };
 
-export default CancelTransactionDialogSlide;
+export {CancelTransactionDialogSlide, SucessfullyTransactionDialogSlide};

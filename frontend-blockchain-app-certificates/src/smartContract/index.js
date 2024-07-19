@@ -6,8 +6,7 @@ function loadAcademicCertificateI_ABI() {
     .then(response => response.json())
     .then(data => {
       academicCertificateI_abi = data.abi;
-      console.log('ABI loaded:', academicCertificateI_abi);
-      return academicCertificateI_abi; // Devuelve la ABI cargada
+      return academicCertificateI_abi;
     })
     .catch(error => {
       console.error('Error al cargar academicCertificateI_abi:', error);

@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html style="-webkit-print-color-adjust: exact; margin: 0">
 <head>
-    <title>Web Certificate</title>
+    <title>{{web-title}}</title>
     <!-- fonts -->
     <!-- Name Certificate -->
+    <link rel="icon" href="https://res.cloudinary.com/dvjnqwzpc/image/upload/v1720111589/blockchain-webpage/cerif-logo_xkfm37.ico" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Playball&display=swap" rel="stylesheet">
@@ -29,6 +30,13 @@
         }
 
         .bodydiv {
+            top: 0;
+            left: 0;
+            right: 0;
+            min-height: 21cm;
+            min-width: 29.7cm;
+            max-height: 21cm;
+            max-width: 29.7cm;
             position: absolute;
             display: flex;
             flex-direction: row;
@@ -54,7 +62,7 @@
             max-width: 29.7cm;
             z-index: -1;
             background: #D1EBF9;
-            background-image: url('./img/background-certificado.png');
+            background-image: url({{url-background}});
             background-position: fixed;
             background-repeat: repeat;
             background-size: cover;
@@ -69,7 +77,7 @@
         }
 
         .name-participant-section {
-            margin-top: 2.5cm;
+            /* margin-top: 2.5cm; */
             margin-left: 3.2cm;
             margin-right: 1cm;
             min-width: 18cm;
@@ -144,7 +152,7 @@
         }
 
         .hash-style {
-            font-size: 0.3cm;
+            font-size: 0.25cm;
         }
 
         .hash-style {
@@ -153,9 +161,9 @@
             text-orientation:  sideways;
             writing-mode: vertical-lr;
             align-self: flex-end;
-            margin-bottom: 0.5cm;
+            margin-bottom: 0.2cm;
             /* margin-left: 2.5cm; */
-            margin-top: 3cm;
+            margin-top: -4cm;
         }
 
         .hash-style:active {
@@ -194,16 +202,19 @@
         .signs-section {
             display: flex;
             flex-direction: row;
-            justify-content: space-around;
+            justify-content: right;
+            margin-top: 3rem;
         }
         .col2{
+            /* position: absolute; */
             display: flex;
             flex-direction: column;
-            justify-content: end;
+            /* flex-end; Cambiado a 'flex-end' */
             align-items: flex-end;
             /* margin-left: 0.5cm; */
             padding-left: 0.99cm;
             padding-bottom: 0.5cm;
+            margin-top: 6cm;
         }
         .blockchain-banner-section {
             display: flex;
@@ -228,7 +239,8 @@
 
 <body style="margin: 0">
     <div class="page-background"></div>
-    <div class="bodydiv" style="margin-top: 3cm;">
+    <div class="bodydiv" style="margin-top: 5cm !important;min-height: 16cm;
+    max-height: 16cm !important;">
         <div class="col0">
             <div class="blockchain-banner-section">
                 <p class="montserrat-text-banner" 
@@ -247,35 +259,33 @@
                 <h1 class="participant-name"><strong>{{name}}</strong></h1>
                 <!-- <hr> -->
                 <div class="linea"></div>
-                <p class="montserrat-text">Por haber aprobado el curso <strong>{{course}}</strong>: {{description}}.</p>
-                <p class="montserrat-text">Por haber participado como director del proyecto “Modelo de Financiamiento y su impacto en el ingreso a la educación superior”, en la convocatoria de proyectos de investigación, desarrollo e innovación ISTER 2023.</p>
-                <p class="montserrat-text" style="text-align: right;"><strong>Fecha:</strong> {{issuedAt}}</p>
+                <p class="montserrat-text">{{description}}</p>
+                <p></p>
+                <p class="montserrat-text" style="text-align: right;"><strong>{{issuedAt}}</p>
                 <div class="signs-section">
-                    <div>
-                        <img style="max-width: 2.5cm;min-height: 2cm;max-height: 2cm;" src="./signs/firmaJM.svg" alt="Transaction Hash QR Code">
-                        <div class="sign-linea"></div>
-                        <p style="margin-top: 0cm;font-size: 0.4cm !important;" class="montserrat-text-sign"><strong>PhD. Juan Minango</strong></p>
-                        <p style="margin-top: -0.35cm;font-size: 0.35cm !important;" class="montserrat-text-sign">Instructor del curso</p>
-                    </div>
-                    <div>
-                        <img style="max-width: auto; min-height: 2cm;max-height: 2cm;" src="./signs/firmaMZ.svg" alt="Transaction Hash QR Code">
+                    <div style="padding-right: 5rem;">
+                        <img style="max-width: auto; min-height: 2cm;max-height: 2cm;" src="{{url-sign-director}}" alt="director sign">
                         <div class="sign-linea"></div>
                         <p style="margin-top: 0cm;font-size: 0.4cm !important;" class="montserrat-text-sign"><strong>PhD. Marcelo Zambrano</strong></p>
                         <p style="margin-top: -0.35cm;font-size: 0.35cm !important;" class="montserrat-text-sign">Director de Investigación</p>
                     </div>
+                    <div class="sello" style="padding-right: 4rem;">
+                        <img style="max-width: 4.5cm;min-height: 2cm;max-height: 3cm;" src="https://res.cloudinary.com/dvjnqwzpc/image/upload/v1720475389/blockchain-webpage/sello_inv_hqyjmi.svg" alt="Instructor sign">
+                    </div>
                 </div>
-                <!-- <a href="https://console.cloudinary.com/console/c-dbe373d6f0e0210e4726b1a020abd8/media_library/folders/c82b480d1a892b94ed34f5d4ade8efb553?view_mode=mosaic" class="hash-style">0xeeeb180c9788e1758bb3af0f152d683ba6ccc40053dc0a27519f24f0649729</a> -->
-                <!-- <div class="pill">
-                    <p class="montserrat-text" style="font-size: small;color: white;"><strong>Certificado NFT registrado en la Blockchain</strong></p>  
-                </div> -->
             </div>
-            
         </div>
         <div class="col2">
-            <a href="{{url}}" class="hash-style">Hash: 0xeeeb180c9788e1758bb3af0f152d683ba6ccc40053dc0a27519f24f0649729</a>
-            <img style="max-width: 1.5cm; border: white solid 0.15cm; border-radius: 5%;" src="https://www.qr-generator.nu/qrcode.svg?download=1" alt="Transaction Hash QR Code">
+            <a href="{{url-hash}}" class="hash-style" target="_blank" rel="noopener noreferrer">Hash: {{transactionHash}}</a>
+            <img style="max-width: 1.5cm; border: white solid 0.1cm; border-radius: 5%;" src="data:image/png;base64,{{transactionHashQRBase64}}" alt="Transaction Hash QR Code">
         </div>
     </div>
+    <!-- Script para imprimir página -->
+    <script>
+        // Espera a que el documento HTML completo se cargue
+        window.onload = function() {
+            window.print();
+        };
+    </script>
 </body>
-
 </html>

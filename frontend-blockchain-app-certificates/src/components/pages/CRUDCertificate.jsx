@@ -10,11 +10,9 @@ import {
   TablePagination,
   TableRow,
   Box, Button, Divider, Typography,
-  FormControl, Modal, Select, MenuItem
+  FormControl, Modal, Select, MenuItem,
+  Radio, RadioGroup, FormLabel, FormControlLabel 
 } from '@mui/material';
-
-//DIALOG IMPOPRTS
-import Slide from '@mui/material/Slide';
 
 // Icons
 import IconButton from '@mui/material/IconButton';
@@ -23,28 +21,20 @@ import PrintIcon from '@mui/icons-material/Print';
 import QRCode from 'qrcode'
 import useAPIsCertificate from '@hooks/useAPIsCertificate';
 import useAPIsContract from '@hooks/useAPIsContract';
-import html_template_certificate from "@utils/certificate-template/html_template"
+import {html_course_template_certificate, html_project_template_certificate} from "@utils/certificate-template/html_template"
 import { formatDate, formatDateWCity } from "@utils/helpers"
-import { callContractCreateCertificate, getInstitutionName } from "@services/web3_service";
+import { callContractCreateCertificate } from "@services/web3_service";
 import { useAuthUser } from "@contexts/AuthUserContext";
 import Progress_loading from '@utils/Progress_loading';
-import CancelTransactionDialogSlide from "@utils/AlertDialogSlide";
+import {CancelTransactionDialogSlide, SucessfullyTransactionDialogSlide} from "@utils/AlertDialogSlide";
 
 
 const _url_background = import.meta.env.VITE_URL_BACKGROUND_CERTIFICATE;
 const _sign_instructor = import.meta.env.VITE_URL_SIGN_INSTRUCTOR;
 const _sign_director = import.meta.env.VITE_URL_SIGN_DIRECTOR;
-const ContractAddress = import.meta.env.VITE_CONTRACT_ADDRESS_ACADEMIC_ISTER;
+// const ContractAddress = import.meta.env.VITE_CONTRACT_ADDRESS_ACADEMIC_ISTER;
 
-const columnsTable = [
-  { id: 'document_id', label: 'Identificación', minWidth: 70, align: 'center' },
-  { id: 'name', label: 'Nombre del Participante', minWidth: 170, align: 'center' },
-  { id: 'course', label: 'Curso', minWidth: 170, align: 'center' },
-  { id: 'issued_at', label: 'Fecha de Emisión', minWidth: 80, align: 'center' },
-  { id: 'token_id', label: 'Token ID', minWidth: 80, align: 'center' },
-  { id: 'tx_hash', label: 'Hash de la Transacción', minWidth: 100, maxWidth: 150, align: 'center' },
-  { id: 'btns-section', label: 'Acciones', minWidth: 100, align: 'center' },
-]
+
 
 const styleModal = {
   position: 'absolute',
@@ -87,14 +77,39 @@ const CRUDCertificate = () => {
   const [contractHash, setContractHash] = useState('');
   const [isSelectDisabled, setIsSelectDisabled] = useState(false);
   const [buttonText, setButtonText] = useState('USAR CONTRATO');
+  const [typeCertificate, setTypeCertificate] = useState('Nombre del Proyecto');
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const theme = useTheme();
+
+  //Radio Buttons
+  const [certifType, setCertifType] = useState('proyecto');
+  const [dataCertificatesType, setDataCertificatesType] = useState('proyecto');
+  const [prevCertificatesType, setPrevCertificatesType] = useState(dataCertificatesType);
+
+  //Table columns
+  const columnsTable = [
+    { id: 'document_id', label: 'Identificación', minWidth: 70, align: 'center' },
+    { id: 'name', label: 'Nombre del Participante', minWidth: 170, align: 'center' },
+    { id: 'course', label: 'Curso/Proyecto', minWidth: 170, align: 'center' },
+    { id: 'issued_at', label: 'Fecha de Emisión', minWidth: 80, align: 'center' },
+    { id: 'token_id', label: 'Token ID', minWidth: 80, align: 'center' },
+    { id: 'tx_hash', label: 'Hash de la Transacción', minWidth: 100, maxWidth: 150, align: 'center' },
+    { id: 'btns-section', label: 'Acciones', minWidth: 100, align: 'center' },
+  ]
+
+  const handleChangeRadio = (event) => {
+    setCertifType(event.target.value);
+  };
+  const handleChangeRadioData = (event) => {
+    setDataCertificatesType(event.target.value);
+  };
   
-  const { userAcc, ethWallet, connectionErr } = useAuthUser();
+  const { userAcc, ethWallet, connectionErr, callContractMethod } = useAuthUser();
   
-  let html_template = html_template_certificate;
+  let html_template_course = html_course_template_certificate;
+  let html_template_project = html_project_template_certificate;
   
   const handleOpenCreateSection = () => {
     getContracts();
@@ -103,7 +118,7 @@ const CRUDCertificate = () => {
 
   // API REST variables
   const { data, loading, error, dataCertificate, loadingData, errorData,
-    submitCertificate, getCertificatesPagination } = useAPIsCertificate();
+    submitCertificate, getCertificatesPagination_ByType } = useAPIsCertificate();
   
   const { dataContract, loadingDataContract, errorDataContract, getContracts } = useAPIsContract();
 
@@ -124,8 +139,23 @@ const CRUDCertificate = () => {
   }, [connectionErr]);
 
   useEffect(() => {
-    getCertificatesPagination(page + 1, rowsPerPage);
-  }, [page, rowsPerPage]);
+    if (certifType == "proyecto") {
+      setTypeCertificate("Nombre del Proyecto");
+    } else {
+      setTypeCertificate("Nombre del Curso");
+    }
+  }, [certifType])
+  
+
+  useEffect(() => {
+    if (prevCertificatesType != dataCertificatesType) {
+      setPage(0);
+      getCertificatesPagination_ByType(1, rowsPerPage, dataCertificatesType);
+      setPrevCertificatesType(dataCertificatesType);
+    } else {
+      getCertificatesPagination_ByType(page + 1, rowsPerPage, dataCertificatesType);
+    }
+  }, [page, rowsPerPage, dataCertificatesType]);
 
   useEffect(() => {
     if (dataCertificate && dataCertificate.certificates) {
@@ -166,11 +196,22 @@ const CRUDCertificate = () => {
     documentIdentification: '',
     course: '',
     description: '',
-    //name, documentIdentification, course, description, 
     tokenId: '', 
     transactionHash: '', 
     contract_address: '',
   });
+
+  const clearFormData = () => {
+    setFormData({
+      name: '',
+      documentIdentification: '',
+      course: '',
+      description: '',
+      tokenId: '', 
+      transactionHash: '', 
+      contract_address: '',
+    });
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -188,6 +229,20 @@ const CRUDCertificate = () => {
     }));
   };
 
+  const handleCreateCertificate = async (contractAddress, name, ci, course, description) => {
+    const methodName = 'issueCertificate';
+    const params = [name, ci, course, description];
+
+    try {
+      const { tx_hash, tokenId, timestamp } = await callContractMethod(contractAddress, methodName, params);
+      console.log('Transaction Hash:', tx_hash, timestamp);
+      return { tx_hash, tokenId, timestamp };
+    } catch (error) {
+      console.error('Error creating certificate:', error);
+      return [null, null];
+    }
+  };
+
   const handleSubmit = async (e) => {
     handleOpen();
     e.preventDefault();
@@ -195,45 +250,29 @@ const CRUDCertificate = () => {
       alert("El documento de identidad no es correcto.");
       return;
     }
-    html_template = html_template.replace('{{name}}', formData.name);
-    html_template = html_template.replace('{{documentIdentification}}', formData.documentIdentification);
-    html_template = html_template.replace('{{course}}', formData.course);
-    html_template = html_template.replace('{{course2}}', formData.course);
-    html_template = html_template.replace('{{description}}', formData.description);
 
-    // html_template = html_template.replace('{{issuedAt}}', formattedDate);
-    // html_template = html_template.replace('{{tokenId}}', tokenId);
-    // html_template = html_template.replace('{{transactionHash}}', transactionHash);
-
-    // const url = `https://sepolia.etherscan.io/nft/${academicAddress}/${tokenId}`;
-    // const transactionHashQRCode = await QRCode.toDataURL(url);
-    // const transactionHashQRBase64 = transactionHashQRCode.split(',')[1];
-
-    // html_template = html_template.replace('{{transactionHashQRBase64}}', transactionHashQRBase64);
-    // html_template = html_template.replace('{{url-hash}}', url);
     try {
-      console.log(userAcc, contractHash, formData);
-      console.log("INSTITUITON NAME");
-      const instituiton = await getInstitutionName();
-      const [tokenId, txHash] = await callContractCreateCertificate(userAcc, contractHash, formData);
-      console.log("TOKEN ID:", tokenId);
-      console.log("TX HASH:", txHash);
+      const { tx_hash, tokenId, timestamp } = await handleCreateCertificate(contractHash, formData.name, formData.documentIdentification, formData.course, formData.description);
+
       if (tokenId != null) {
-        setFormData(prevState => ({
-          ...prevState,
-          tokenId: tokenId,
-          transactionHash: txHash
-        }));
-        console.log("FORMDATA:", formData);
-        // Almacenar datos en DB
-        submitCertificate({
-          ...formData,
-          tokenId: tokenId,
-          transactionHash: txHash
-        });
-        setModalMessage('La transacción se realizó correctamente.');
-        // setOpen(false);
-        handleOpenDialog();
+          setFormData(prevState => {
+          const updatedFormData = {
+            ...prevState,
+            tokenId: tokenId,
+            transactionHash: tx_hash,
+            timestamp: timestamp.toString(),
+            type: certifType
+          };
+          
+          // Almacenar datos en DB
+          const receipt = submitCertificate(updatedFormData);
+          console.log(receipt);
+          setModalMessage('La transacción se realizó correctamente.');
+          handleOpenDialog();
+          clearFormData();
+          setPage(0);
+          return(updatedFormData);
+      });
       }
     } catch (error) {
       setModalMessage(`Error al crear el certificado: ${error.message}`);
@@ -242,46 +281,78 @@ const CRUDCertificate = () => {
     } finally {
       setModalOpen(true);
       handleOpenDialog();
+      setOpen(false);
     }
   };
 
-  const openCertificateHTML = async (rowData) => {
+  // Generate QR Code based on url
+  const getTransactionHashQRCode = async (url) => {
     try {
-      let html_template_copy = html_template; // Copiar el template del certificado original
+        const transactionHashQRCode = await QRCode.toDataURL(url);
+        return transactionHashQRCode.split(',')[1];
+    } catch (error) {
+        console.error('Error al generar el QR code:', error);
+        throw error;
+    }
+  };
 
-      const url = `https://polygonscan.com/nft/${ContractAddress}/${rowData.token_id}`;
-      const transactionHashQRCode = await QRCode.toDataURL(url);
-      const transactionHashQRBase64 = transactionHashQRCode.split(',')[1];
+
+const generateCertificateHTML = (rowData, transactionHashQRBase64) => {
+  try {
+      let html_template_copy;
+      if (rowData.type == 'curso') {
+        html_template_copy = html_course_template_certificate; // Copiar el template del certificado original
+      } else {
+        html_template_copy = html_project_template_certificate; // Copiar el template del certificado de proyecto original
+      }
+      const url = `https://polygonscan.com/nft/${rowData.addresscontract}/${rowData.token_id}`;
       const course = rowData.course;
 
       // Reemplazar los placeholders con los datos de la fila específica
-      html_template_copy = html_template_copy.replace('{{web-title}}', `certificado-curso-${rowData.course}-${rowData.name}`);
+      html_template_copy = html_template_copy.replace('{{web-title}}', `certificado-${rowData.name}-${
+        (function(text, maxLength) {
+          return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+      })(rowData.course, 20)
+      }-${formatDate(rowData.issued_at)}`);
+
       html_template_copy = html_template_copy.replace('{{name}}', rowData.name);
       html_template_copy = html_template_copy.replace('{{documentIdentification}}', rowData.documentIdentification);
       html_template_copy = html_template_copy.replace('{{course}}', rowData.course);
       html_template_copy = html_template_copy.replace('{{course2}}', course);
       html_template_copy = html_template_copy.replace('{{description}}', rowData.description);
-      html_template_copy = html_template_copy.replace('{{description}}', rowData.description);
       html_template_copy = html_template_copy.replace('{{issuedAt}}', formatDateWCity('Sangolquí', rowData.issued_at));
       html_template_copy = html_template_copy.replace('{{transactionHash}}', rowData.tx_hash);
-
       html_template_copy = html_template_copy.replace('{{url-background}}', _url_background);
       html_template_copy = html_template_copy.replace('{{url-sign-instructor}}', _sign_instructor);
       html_template_copy = html_template_copy.replace('{{url-sign-director}}', _sign_director);
-
-
-      html_template = html_template.replace('{{transactionHashQRBase64}}', transactionHashQRBase64);
-      html_template = html_template.replace('{{url-hash}}', url);
+      html_template_copy = html_template_copy.replace('{{transactionHashQRBase64}}', transactionHashQRBase64);
+      html_template_copy = html_template_copy.replace('{{url-hash}}', url);
 
       // Abrir una nueva pestaña con el HTML generado
       const newWindow = window.open();
       newWindow.document.open();
       newWindow.document.write(html_template_copy);
       newWindow.document.close();
+  } catch (error) {
+      console.error('Error al generar el certificado HTML:', error);
+  }
+};
+
+
+  const openCertificateHTML = async (rowData) => {
+    try {
+        const url = `https://polygonscan.com/nft/${rowData.addresscontract}/${rowData.token_id}`;
+        const transactionHashQRBase64 = await getTransactionHashQRCode(url);
+        generateCertificateHTML(rowData, transactionHashQRBase64);
     } catch (error) {
-      console.error('Error al abrir el certificado HTML:', error);
+        console.error('Error al abrir el certificado HTML:', error);
     }
-  };
+};
+
+const handleOpenCertificate = () => {
+  openCertificateHTML(formData);
+};
+
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -312,17 +383,19 @@ const CRUDCertificate = () => {
         ...prevState,
         contract_address: ''
       }));
-      console.log(formData);
     } else {
-      // Deshabilitar selección
-      setIsSelectDisabled(true);
-      setButtonText('CAMBIAR DE CONTRATO');
       const selectedContract = contracts.find(contract => contract.idcontract === contrato);
-      if (selectedContract) {
+      
+      if (selectedContract && selectedContract != undefined) {
+        // Deshabilitar selección si se ha seleccionado un contrato
         setFormData(prevState => ({
           ...prevState,
           contract_address: selectedContract.addresscontract
         }));
+        setIsSelectDisabled(true);
+        setButtonText('CAMBIAR DE CONTRATO');
+      } else {
+        alert('Por favor, seleccione un contrato antes de continuar.');
       }
     }
   };
@@ -472,6 +545,17 @@ const CRUDCertificate = () => {
           <Divider color="white" />
           {isSelectDisabled ? (
             <FormControl component="form" onSubmit={handleSubmit}>
+              <Typography>Tipo de Certificado</Typography>
+              <RadioGroup
+                aria-labelledby="demo-controlled-radio-buttons-group"
+                name="controlled-radio-buttons-group"
+                value={certifType}
+                onChange={handleChangeRadio}
+                sx={{display: "flex", flexDirection: 'row'}}
+              >
+                <FormControlLabel value="proyecto" control={<Radio color="default" />} label="Proyecto de Investigación" />
+                <FormControlLabel value="curso" control={<Radio color="default" />} label="Curso" />
+              </RadioGroup>
               <Typography style={{ fontWeight: "bold", marginBottom: "15px" }}>CAMPOS DEL CERTIFICADO</Typography>
               <Box sx={{
                 display: "flex", flexDirection: "row", gap: 2,
@@ -559,9 +643,9 @@ const CRUDCertificate = () => {
                     }}
                   >
                     <Typography component={'div'} label="Input 1"
-                      sx={{ minWidth: "20%" }}>Nombre del Curso</Typography>
+                      sx={{ minWidth: "20%" }}>{typeCertificate}</Typography>
                     <StyledTextField
-                      label="Ingrese el nombre del curso"
+                      label={`Ingrese el nombre del ${certifType}`}
                       InputLabelProps={{
                         style: { color: "white" },
                       }}
@@ -573,6 +657,8 @@ const CRUDCertificate = () => {
                       value={formData.course}
                       onChange={handleChange}
                       required
+                      multiline
+                      maxRows={3}
                       size="small"
                       id="outlined-disabled"
                       sx={{ minWidth: "40%" }}
@@ -591,7 +677,7 @@ const CRUDCertificate = () => {
                     <Typography component={'div'} label="Input 1"
                       sx={{ minWidth: "20%" }}>Descripción</Typography>
                     <StyledTextField
-                      label="Ingrese una descripción del curso"
+                      label={`Ingrese una descripción del ${certifType}`}
                       InputLabelProps={{
                         style: { color: "white" },
                       }}
@@ -603,28 +689,49 @@ const CRUDCertificate = () => {
                       value={formData.description}
                       onChange={handleChange}
                       required
+                      multiline
+                      maxRows={4}
                       size="small"
                       id="outlined-disabled"
                       aria-describedby="my-helper-text"
                       sx={{ minWidth: "40%" }}
                     />
                   </Box>
+                  <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
                   <Button
-                    type="submit" disabled={loading}
-                    sx={{
-                      bgcolor: "#39C8C8",
-                      "&:hover": { bgcolor: "#45EEEE" },
-                      minWidth: "20%",
-                      minHeight: "20%",
-                      maxWidth: "45",
-                      marginBottom: "2rem",
-                      // marginTop: "2rem"
-                    }}
-                    color="primary"
-                    variant="contained"
-                  >
-                    {loading ? 'CREANDO CERTIFICADO...' : 'CREAR CERTIFICADO'}
-                  </Button>
+                      type="submit" disabled={loading}
+                      sx={{
+                        bgcolor: "rgba(214, 97, 97,0.85)",
+                        ":hover" : {bgcolor: 'rgba(214, 97, 97,0.95)' },
+                        minWidth: "20%",
+                        minHeight: "20%",
+                        maxWidth: "45",
+                        marginBottom: "2rem",
+                        marginRight: '1rem'
+                        // marginTop: "2rem"
+                      }}
+                      color="primary"
+                      variant="contained"
+                    >
+                      CANCELAR
+                    </Button>
+                    <Button
+                      type="submit" disabled={loading}
+                      sx={{
+                        bgcolor: "#39C8C8",
+                        "&:hover": { bgcolor: "#45EEEE" },
+                        minWidth: "20%",
+                        minHeight: "20%",
+                        maxWidth: "45",
+                        marginBottom: "2rem",
+                        // marginTop: "2rem"
+                      }}
+                      color="primary"
+                      variant="contained"
+                    >
+                      {loading ? 'CREANDO CERTIFICADO...' : 'CREAR CERTIFICADO'}
+                    </Button>
+                  </div>
                 </Box>
               </Box>
             </FormControl>
@@ -669,13 +776,35 @@ const CRUDCertificate = () => {
       
               </Box>
             </Modal> */}
-            <CancelTransactionDialogSlide open={openDialog} handleClose={handleCloseDialog} />
+            {openDialog && modalMessage === 'La transacción se realizó correctamente.' && (
+            <SucessfullyTransactionDialogSlide
+              open={openDialog}
+              handleClose={handleCloseDialog}
+            />
+            )}
+            {openDialog && modalMessage.includes('Error') && (
+              <CancelTransactionDialogSlide
+                open={openDialog}
+                handleClose={handleCloseDialog}
+              />
+            )}
         </>
       )
       }
-
+      <Divider color="white" />
       {/* END CREATE CERTIFICATE */}
+      
       <Typography style={{ fontWeight: "bold" }}>LISTA DE CERTIFICADOS</Typography>
+      <RadioGroup
+        aria-labelledby="demo-controlled-radio-buttons-group"
+        name="controlled-radio-buttons-group"
+        value={dataCertificatesType}
+        onChange={handleChangeRadioData}
+        sx={{display: "flex", flexDirection: 'row'}}
+      >
+        <FormControlLabel value={'proyecto'} control={<Radio color="default" />} label="Proyecto de Investigación" />
+        <FormControlLabel value={'curso'} control={<Radio color="default" />} label="Curso" />
+      </RadioGroup>
       <Box
         sx={{
           display: "flex",
@@ -696,7 +825,8 @@ const CRUDCertificate = () => {
                     style={{ minWidth: column.minWidth, color: 'white' }}
                   // sx={{ bgcolor: "white" }}
                   >
-                    {column.label}
+                    {column.label === 'Curso/Proyecto' ? 
+                    dataCertificatesType.charAt(0).toUpperCase() + dataCertificatesType.slice(1) : column.label}
                   </TableCell>
                 ))}
               </TableRow>
@@ -714,7 +844,7 @@ const CRUDCertificate = () => {
                         column.id === 'issued_at' ? formatDate(row.issued_at) :
                           column.id === 'tx_hash' ? (
                             <a style={{ color: 'white' }}
-                              href={`https://sepolia.etherscan.io/nft/${ContractAddress}/${row.token_id}`} target="_blank" rel="noopener noreferrer">
+                              href={`https://polygonscan.com/tx/${row.tx_hash}`} target="_blank" rel="noopener noreferrer">
                               {/* {row[column.id]} */}
                               {`${row[column.id].slice(0, 7)}...${row[column.id].slice(-5)}`}
                             </a>

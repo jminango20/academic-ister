@@ -27,10 +27,11 @@ CREATE TABLE IF NOT EXISTS certificates (
     document_id VARCHAR(255) NOT NULL,
     course VARCHAR(255) NOT NULL,
     description TEXT,
-    issued_at VARCHAR(255) NOT NULL,
+    issued_at TIMESTAMPTZ NOT NULL,
     token_id VARCHAR(255) NOT NULL,
     tx_hash VARCHAR(255) NOT NULL,
     idContract INT NOT NULL,
+    type VARCHAR(255),
     FOREIGN KEY (contract_id) REFERENCES contracts(idContract)
 );
 `;

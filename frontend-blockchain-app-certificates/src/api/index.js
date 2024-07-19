@@ -10,6 +10,29 @@ const getHeaders = () => {
   };
 };
 
+export const getAllCertificates_ByType = async (page, limit, type) => {
+  try {
+    const url = new URL(`${API_BASE_URL}/academic/certificates_by_type`);
+    url.searchParams.append('page', page);
+    url.searchParams.append('limit', limit);
+    url.searchParams.append('type', type);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: getHeaders(),
+    });
+    // console.log(response)
+
+    if (!response.ok) {
+      throw new Error('Error fetching certificates');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
 export const getAllCertificates = async (page, limit) => {
   try {
     const url = new URL(`${API_BASE_URL}/academic/certificates`);
