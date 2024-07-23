@@ -32,7 +32,7 @@ import {CancelTransactionDialogSlide, SucessfullyTransactionDialogSlide} from "@
 const _url_background = import.meta.env.VITE_URL_BACKGROUND_CERTIFICATE;
 const _sign_instructor = import.meta.env.VITE_URL_SIGN_INSTRUCTOR;
 const _sign_director = import.meta.env.VITE_URL_SIGN_DIRECTOR;
-const _sign_analyst = import.meta.env.VITE_URL_SIGN_DIRECTOR;
+const _sign_analyst = import.meta.env.VITE_URL_SIGN_ANALYST;
 const _name_signer_analyst = import.meta.env.VITE_NAME_SIGNER_ANALYST;
 const _name_signer_director = import.meta.env.VITE_NAME_SIGNER_DIRECTOR;
 const _id_director = import.meta.env.VITE_ID_DIRECTOR;
@@ -306,10 +306,12 @@ const CRUDCertificate = () => {
 const generateCertificateHTML = (rowData, transactionHashQRBase64) => {
   try {
       let html_template_copy;
+      let doc_id;
       if (rowData.type == 'curso') {
         html_template_copy = html_course_template_certificate; // Copiar el template del certificado original
       } else {
         html_template_copy = html_project_template_certificate; // Copiar el template del certificado de proyecto original
+        doc_id = rowData.document_id;
       }
       const url = `https://polygonscan.com/nft/${rowData.addresscontract}/${rowData.token_id}`;
       const course = rowData.course;
@@ -322,7 +324,7 @@ const generateCertificateHTML = (rowData, transactionHashQRBase64) => {
       }-${formatDate(rowData.issued_at)}`);
 
       html_template_copy = html_template_copy.replace('{{name}}', rowData.name);
-      html_template_copy = html_template_copy.replace('{{documentIdentification}}', rowData.documentIdentification);
+      html_template_copy = html_template_copy.replace('{{documentIdentification}}', rowData.document_id);
       html_template_copy = html_template_copy.replace('{{course}}', rowData.course);
       html_template_copy = html_template_copy.replace('{{course2}}', course);
       html_template_copy = html_template_copy.replace('{{description}}', rowData.description);
@@ -333,7 +335,7 @@ const generateCertificateHTML = (rowData, transactionHashQRBase64) => {
       html_template_copy = html_template_copy.replace('{{transactionHashQRBase64}}', transactionHashQRBase64);
       html_template_copy = html_template_copy.replace('{{url-hash}}', url);
       // Conditional to verify which person sign the project certificate
-      if (rowData.documentIdentification == _id_director) {
+      if (doc_id === _id_director) {
         html_template_copy = html_template_copy.replace('{{name-signer}}', _name_signer_analyst);
         html_template_copy = html_template_copy.replace('{{charge-signer}}', _charge_signer_analyst);
         html_template_copy = html_template_copy.replace('{{url-sign-director}}', _sign_analyst);

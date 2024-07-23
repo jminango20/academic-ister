@@ -189,6 +189,8 @@ const AuthUserProvider = ({ children }) => {
           data: method.encodeABI(),
         };
 
+        console.log("TX PARAMS:", transactionParameters);
+
         const txHash  = await ethWallet.request({
           method: 'eth_sendTransaction',
           params: [transactionParameters],

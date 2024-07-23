@@ -512,7 +512,7 @@ const html_project_template_certificate = `
             /* position: absolute; */
             display: flex;
             flex-direction: column;
-            flex-end; /* Cambiado a 'flex-end' */
+            /* flex-end; Cambiado a 'flex-end' */
             align-items: flex-end;
             /* margin-left: 0.5cm; */
             padding-left: 0.99cm;
@@ -569,8 +569,8 @@ const html_project_template_certificate = `
                     <div style="padding-right: 5rem;">
                         <img style="max-width: auto; min-height: 2cm;max-height: 2cm;" src="{{url-sign-director}}" alt="director sign">
                         <div class="sign-linea"></div>
-                        <p style="margin-top: 0cm;font-size: 0.4cm !important;" class="montserrat-text-sign"><strong>PhD. Marcelo Zambrano</strong></p>
-                        <p style="margin-top: -0.35cm;font-size: 0.35cm !important;" class="montserrat-text-sign">Director de Investigación</p>
+                        <p style="margin-top: 0cm;font-size: 0.4cm !important;" class="montserrat-text-sign"><strong>{{name-signer}}</strong></p>
+                        <p style="margin-top: -0.35cm;font-size: 0.35cm !important;" class="montserrat-text-sign">{{charge-signer}}</p>
                     </div>
                     <div class="sello" style="padding-right: 4rem;">
                         <img style="max-width: 4.5cm;min-height: 2cm;max-height: 3cm;" src="https://res.cloudinary.com/dvjnqwzpc/image/upload/v1720475389/blockchain-webpage/sello_inv_hqyjmi.svg" alt="Instructor sign">

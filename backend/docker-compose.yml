@@ -39,6 +39,8 @@ volumes:
   pgdata:
     driver: local
 
+# run project    docker-compose up
+
 # clean docker space
 # docker system prune -a --volumes
 # docker-compose logs -f
