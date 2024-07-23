@@ -32,6 +32,12 @@ import {CancelTransactionDialogSlide, SucessfullyTransactionDialogSlide} from "@
 const _url_background = import.meta.env.VITE_URL_BACKGROUND_CERTIFICATE;
 const _sign_instructor = import.meta.env.VITE_URL_SIGN_INSTRUCTOR;
 const _sign_director = import.meta.env.VITE_URL_SIGN_DIRECTOR;
+const _sign_analyst = import.meta.env.VITE_URL_SIGN_DIRECTOR;
+const _name_signer_analyst = import.meta.env.VITE_NAME_SIGNER_ANALYST;
+const _name_signer_director = import.meta.env.VITE_NAME_SIGNER_DIRECTOR;
+const _id_director = import.meta.env.VITE_ID_DIRECTOR;
+const _charge_signer_director = import.meta.env.VITE_CHARGE_SIGNER_DIRECTOR;
+const _charge_signer_analyst = import.meta.env.VITE_CHARGE_SIGNER_ANALYST;
 // const ContractAddress = import.meta.env.VITE_CONTRACT_ADDRESS_ACADEMIC_ISTER;
 
 
@@ -324,9 +330,18 @@ const generateCertificateHTML = (rowData, transactionHashQRBase64) => {
       html_template_copy = html_template_copy.replace('{{transactionHash}}', rowData.tx_hash);
       html_template_copy = html_template_copy.replace('{{url-background}}', _url_background);
       html_template_copy = html_template_copy.replace('{{url-sign-instructor}}', _sign_instructor);
-      html_template_copy = html_template_copy.replace('{{url-sign-director}}', _sign_director);
       html_template_copy = html_template_copy.replace('{{transactionHashQRBase64}}', transactionHashQRBase64);
       html_template_copy = html_template_copy.replace('{{url-hash}}', url);
+      // Conditional to verify which person sign the project certificate
+      if (rowData.documentIdentification == _id_director) {
+        html_template_copy = html_template_copy.replace('{{name-signer}}', _name_signer_analyst);
+        html_template_copy = html_template_copy.replace('{{charge-signer}}', _charge_signer_analyst);
+        html_template_copy = html_template_copy.replace('{{url-sign-director}}', _sign_analyst);
+      } else {
+        html_template_copy = html_template_copy.replace('{{name-signer}}', _name_signer_director);
+        html_template_copy = html_template_copy.replace('{{charge-signer}}', _charge_signer_director);
+        html_template_copy = html_template_copy.replace('{{url-sign-director}}', _sign_director);
+      }
 
       // Abrir una nueva pestaña con el HTML generado
       const newWindow = window.open();
