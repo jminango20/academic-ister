@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useTheme } from '@mui/material/styles';
 import { StyledTextField, BootstrapInput } from "@utils/styles";
 import {
@@ -23,7 +23,7 @@ import useAPIsCertificate from '@hooks/useAPIsCertificate';
 import useAPIsContract from '@hooks/useAPIsContract';
 import {html_course_template_certificate, html_project_template_certificate} from "@utils/certificate-template/html_template"
 import { formatDate, formatDateWCity } from "@utils/helpers"
-import { callContractCreateCertificate } from "@services/web3_service";
+// import { callContractCreateCertificate } from "@services/web3_service";
 import { useAuthUser } from "@contexts/AuthUserContext";
 import Progress_loading from '@utils/Progress_loading';
 import {CancelTransactionDialogSlide, SucessfullyTransactionDialogSlide} from "@utils/AlertDialogSlide";
@@ -39,28 +39,6 @@ const _id_director = import.meta.env.VITE_ID_DIRECTOR;
 const _charge_signer_director = import.meta.env.VITE_CHARGE_SIGNER_DIRECTOR;
 const _charge_signer_analyst = import.meta.env.VITE_CHARGE_SIGNER_ANALYST;
 // const ContractAddress = import.meta.env.VITE_CONTRACT_ADDRESS_ACADEMIC_ISTER;
-
-
-
-const styleModal = {
-  position: 'absolute',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 400,
-  // bgcolor: 'background.paper',
-  textAlign: 'center',
-  border: '2px solid #000',
-  color: 'white',
-  // boxShadow: 24,
-  padding: 4,
-  borderRadius: 40,
-  backgroundColor: '#ffffff',
-};
 
 
 const CRUDCertificate = () => {
@@ -113,9 +91,6 @@ const CRUDCertificate = () => {
   };
   
   const { userAcc, ethWallet, connectionErr, callContractMethod } = useAuthUser();
-  
-  let html_template_course = html_course_template_certificate;
-  let html_template_project = html_project_template_certificate;
   
   const handleOpenCreateSection = () => {
     getContracts();
@@ -217,6 +192,7 @@ const CRUDCertificate = () => {
       transactionHash: '', 
       contract_address: '',
     });
+    //Limpiar textboxs
   };
 
   const handleChange = (e) => {
