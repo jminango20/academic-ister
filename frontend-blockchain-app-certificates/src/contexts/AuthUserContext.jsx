@@ -165,12 +165,13 @@ const AuthUserProvider = ({ children }) => {
   async function callContractMethod(contractAddress, methodName, params, isReadOnly = false) {
     
     let contract_local;
-    
     if (!contract || contract.options.address !== contractAddress) {
       contract_local = await loadContract(contractAddress);
     } 
+    else {
+      contract_local = contract;
+    }
     // throw new Error('Contract or user account not initialized');
-
     try {
       const method = contract_local.methods[methodName](...params);
       if (isReadOnly) {
@@ -189,7 +190,6 @@ const AuthUserProvider = ({ children }) => {
           data: method.encodeABI(),
         };
 
-        console.log("TX PARAMS:", transactionParameters);
 
         const txHash  = await ethWallet.request({
           method: 'eth_sendTransaction',
@@ -219,11 +219,17 @@ const AuthUserProvider = ({ children }) => {
         }
 
         const tokenId = event.returnValues.tokenId.toString();
-
+        // contract_local = null;
+        // contract = null;
         return {tx_hash, tokenId, timestamp: timestamp.toString()};
       }
     } catch (error) {
       throw new Error(`Error executing contract method: ${error.message}`);
+    }
+    finally {
+      // Asegurarse de limpiar el objeto contract incluso en caso de error
+      contract_local = null;
+      setContract(null);
     }
   }
 

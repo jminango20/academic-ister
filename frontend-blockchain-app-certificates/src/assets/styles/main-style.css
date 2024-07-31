@@ -4,4 +4,38 @@
     background-color: '#D66161' !important;
     color: white !important;
 }
+.btn-polygon {
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+.btn-polygon:hover{
+    /* text-transform: none; */
+    /* background-color: #28f1ff !important; */
+    transform: scale(1.09);
+}
 
+.btn-polygon:active{ 
+    /* background-color: #a7f9ff !important; */
+    transform: scale(0.92);
+}
+
+.btn-polygon:focus{
+    outline: none;
+}
+
+.btn-base {
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+.btn-base:hover{
+    /* text-transform: none; */
+    /* background-color: #28f1ff !important; */
+    transform: scale(1.09);
+}
+
+.btn-base:active{ 
+    /* background-color: #a7f9ff !important; */
+    transform: scale(0.92);
+}
+
+.btn-base:focus{
+    outline: none;
+}

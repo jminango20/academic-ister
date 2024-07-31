@@ -6,7 +6,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const CancelTransactionDialogSlide = ({ open, handleClose }) => {
+const CancelTransactionDialogSlide = ({ open, handleClose, message }) => {
   return (
     <Dialog
       open={open}
@@ -19,7 +19,7 @@ const CancelTransactionDialogSlide = ({ open, handleClose }) => {
       <DialogTitle id="alert-dialog-slide-title">{"Transacción Cancelada"}</DialogTitle>
       <DialogContent>
         <DialogContentText id="alert-dialog-slide-description">
-          La transacción fue cancelada por el usuario.
+          {`La transacción fue cancelada. Motivo: ${message}`}
         </DialogContentText>
       </DialogContent>
       <DialogActions>

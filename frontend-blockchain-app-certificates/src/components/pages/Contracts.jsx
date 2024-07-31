@@ -1,64 +1,41 @@
-import React from "react";
-import { Box, Button, Divider, TextField, Typography, useMediaQuery  } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { 
+  Box, 
+  Button, 
+  Divider, 
+  TextField, 
+  Typography,
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TablePagination, 
+  TableRow 
+} from "@mui/material";
 import { StyledTextField } from "../../utils/styles";
-import PropTypes from 'prop-types';
-import { alpha } from '@mui/material/styles';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
-import TableRow from '@mui/material/TableRow';
-import TableSortLabel from '@mui/material/TableSortLabel';
-import Toolbar from '@mui/material/Toolbar';
-import Paper from '@mui/material/Paper';
-import Checkbox from '@mui/material/Checkbox';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
-import DeleteIcon from '@mui/icons-material/Delete';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import { visuallyHidden } from '@mui/utils';
+
+
+
+import useAPIsContract from '@hooks/useAPIsContract';
 
 
 const columns = [
-  { id: 'name', label: 'Nombre del Contrato', minWidth: 170 },
-  { id: 'contractAddress', label: 'Contract Address', minWidth: 100 },
-  {
-    id: 'walletAddress',
-    label: 'Wallet Address',
-    minWidth: 170,
-    align: 'right',
-  }
+  { id: 'namecontract', label: 'Nombre del Contrato', minWidth: 170 },
+  { id: 'addresscontract', label: 'Contract Address', minWidth: 100 },
+  { id: 'addresscontractfactory', label: 'Contract Factory', minWidth: 100 },
 ];
 
 function createData(name, contractAddress, walletAddress) {
   return { name, contractAddress, walletAddress };
 }
 
-const rows = [
-  createData('India', 1324171354, 1324171354),
-  createData('China', 1324171354, 1403500365),
-  createData('Italy', 1324171354, 60483973),
-  createData('United States', 1324171354, 327167434),
-  createData('Canada', 1324171354, 37602103),
-  createData('Australia', 1324171354, 25475400),
-  createData('Germany', 1324171354, 83019200),
-  createData('Ireland', 1324171354, 4857000),
-  createData('Mexico', 1324171354, 126577691),
-  createData('Japan', 1324171354, 126317000),
-  createData('France', 1324171354, 67022000),
-  createData('United Kingdom', 1324171354, 67545757),
-  createData('Russia', 1324171354, 1467937446),
-  createData('Nigeria', 1324171354, 200962417),
-  createData('Brazil', 1324171354, 210147125),
-];
-
 const Contracts = () => {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
+
+  const [contracts, setContracts] = useState([]);
+  const { dataContract, loadingDataContract, errorDataContract, getContracts } = useAPIsContract();
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -68,6 +45,25 @@ const Contracts = () => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
+
+  //USE EFFECT
+  useEffect(() => {
+    getContracts();
+  }, [])
+  
+  useEffect(() => {
+    if (dataContract && dataContract.contracts) {
+      setContracts(dataContract.contracts || []);
+    }
+  }, [dataContract?.contracts]);
+
+  useEffect(() => {
+    if (dataContract) {
+      if (dataContract.contracts) {
+        setContracts(dataContract.contracts);
+      }
+    }
+  }, [dataContract]);
 
   return (
     <Box
@@ -79,7 +75,7 @@ const Contracts = () => {
         width: "100%",
       }}
     >
-      <Typography component={'div'} sx={{ fontWeight: "bold" }}>CREAR CONTRATO</Typography>
+      <Typography component={'div'} sx={{ fontWeight: "bold" }}>AGREGAR CONTRATO</Typography>
       <Box sx={{ display: "flex", flexDirection: "row", gap: 2,
         paddingRight: "20%" }}>
         <Box
@@ -93,7 +89,7 @@ const Contracts = () => {
             
           }}
         >
-          <Typography component={'div'} label="Input 1">WALLET ADDRESS</Typography>
+          <Typography component={'div'} label="Input 1">CONTRACT ADDRESS</Typography>
           <StyledTextField
             label="Contract address"
             InputLabelProps={{
@@ -232,19 +228,30 @@ const Contracts = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              {contracts
+                // .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row, index) => {
                   return (
                     <TableRow hover role="checkbox" tabIndex={-1} key={`${row.code}-${index}`}>
                       {columns.map((column, index) => {
                         const value = row[column.id];
+                        const isContractAddress = column.id === 'addresscontract';
+                        const isContractFactoryAddress = column.id === 'addresscontractfactory';
+                        const link = isContractAddress ? `https://polygonscan.com/address/${value}` 
+                                    : isContractFactoryAddress ? `https://polygonscan.com/address/${value}`
+                                    : null;
+
                         return (
                           <TableCell key={`${column.id}-${index}`} align={column.align} style={{ color: 'white' }}>
-                            {column.format && typeof value === 'number'
-                              ? column.format(value)
-                              : value}
-                              
+                            {link ? (
+                              <a href={link} target="_blank" rel="noopener noreferrer" style={{ color: 'white' }}>
+                                {value}
+                              </a>
+                            ) : column.format && typeof value === 'number' ? (
+                              column.format(value)
+                            ) : (
+                              value
+                            )}
                           </TableCell>
                         );
                       })}
@@ -258,7 +265,7 @@ const Contracts = () => {
           style={{ color: 'white' }}
           rowsPerPageOptions={[5,10,25]}
           component="div"
-          count={rows.length}
+          count={contracts.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

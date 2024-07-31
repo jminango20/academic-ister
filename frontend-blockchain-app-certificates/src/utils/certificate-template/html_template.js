@@ -292,8 +292,12 @@ const html_course_template_certificate = `
     <script>
         // Espera a que el documento HTML completo se cargue
         window.onload = function() {
-            // Llama a la función print para abrir el diálogo de impresión
-            window.print();
+            setTimeout(function() {
+                var userResponse = confirm("¿Desea imprimir el certificado?");
+                if (userResponse) {
+                    window.print();
+                }
+            }, 2000); // 2 segundos
         };
     </script>
 </body>
@@ -587,7 +591,12 @@ const html_project_template_certificate = `
     <script>
         // Espera a que el documento HTML completo se cargue
         window.onload = function() {
-            window.print();
+            setTimeout(function() {
+                var userResponse = confirm("¿Desea imprimir el certificado?");
+                if (userResponse) {
+                    window.print();
+                }
+            }, 2000); // 2 segundos de espera
         };
     </script>
 </body>

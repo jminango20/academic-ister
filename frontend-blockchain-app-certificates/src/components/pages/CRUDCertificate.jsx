@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from '@mui/material/styles';
+import { motion } from "framer-motion"
 import { StyledTextField, BootstrapInput } from "@utils/styles";
 import {
   Table,
@@ -11,7 +12,7 @@ import {
   TableRow,
   Box, Button, Divider, Typography,
   FormControl, Modal, Select, MenuItem,
-  Radio, RadioGroup, FormLabel, FormControlLabel 
+  Radio, RadioGroup, FormLabel, FormControlLabel
 } from '@mui/material';
 
 // Icons
@@ -21,12 +22,12 @@ import PrintIcon from '@mui/icons-material/Print';
 import QRCode from 'qrcode'
 import useAPIsCertificate from '@hooks/useAPIsCertificate';
 import useAPIsContract from '@hooks/useAPIsContract';
-import {html_course_template_certificate, html_project_template_certificate} from "@utils/certificate-template/html_template"
+import { html_course_template_certificate, html_project_template_certificate } from "@utils/certificate-template/html_template"
 import { formatDate, formatDateWCity } from "@utils/helpers"
 // import { callContractCreateCertificate } from "@services/web3_service";
 import { useAuthUser } from "@contexts/AuthUserContext";
 import Progress_loading from '@utils/Progress_loading';
-import {CancelTransactionDialogSlide, SucessfullyTransactionDialogSlide} from "@utils/AlertDialogSlide";
+import { CancelTransactionDialogSlide, SucessfullyTransactionDialogSlide } from "@utils/AlertDialogSlide";
 
 
 const _url_background = import.meta.env.VITE_URL_BACKGROUND_CERTIFICATE;
@@ -38,7 +39,6 @@ const _name_signer_director = import.meta.env.VITE_NAME_SIGNER_DIRECTOR;
 const _id_director = import.meta.env.VITE_ID_DIRECTOR;
 const _charge_signer_director = import.meta.env.VITE_CHARGE_SIGNER_DIRECTOR;
 const _charge_signer_analyst = import.meta.env.VITE_CHARGE_SIGNER_ANALYST;
-// const ContractAddress = import.meta.env.VITE_CONTRACT_ADDRESS_ACADEMIC_ISTER;
 
 
 const CRUDCertificate = () => {
@@ -55,7 +55,7 @@ const CRUDCertificate = () => {
   const handleOpenDialog = () => setOpenDialog(true);
   const handleCloseDialog = () => setOpenDialog(false);
   const handleCloseCreateSection = () => setOpenCreateSection(false);
-  
+
   const [contracts, setContracts] = useState([]);
   const [contrato, setContrato] = useState('');
   const [contractHash, setContractHash] = useState('');
@@ -89,9 +89,9 @@ const CRUDCertificate = () => {
   const handleChangeRadioData = (event) => {
     setDataCertificatesType(event.target.value);
   };
-  
+
   const { userAcc, ethWallet, connectionErr, callContractMethod } = useAuthUser();
-  
+
   const handleOpenCreateSection = () => {
     getContracts();
     setOpenCreateSection(true);
@@ -100,10 +100,10 @@ const CRUDCertificate = () => {
   // API REST variables
   const { data, loading, error, dataCertificate, loadingData, errorData,
     submitCertificate, getCertificatesPagination_ByType } = useAPIsCertificate();
-  
+
   const { dataContract, loadingDataContract, errorDataContract, getContracts } = useAPIsContract();
 
-  
+
 
   // #region USE_EFFECT_SECTION
   // Use effect to update the open variable when the button is pressed
@@ -120,13 +120,17 @@ const CRUDCertificate = () => {
   }, [connectionErr]);
 
   useEffect(() => {
+  }, [openDialog, modalMessage])
+  
+
+  useEffect(() => {
     if (certifType == "proyecto") {
       setTypeCertificate("Nombre del Proyecto");
     } else {
       setTypeCertificate("Nombre del Curso");
     }
   }, [certifType])
-  
+
 
   useEffect(() => {
     if (prevCertificatesType != dataCertificatesType) {
@@ -177,8 +181,8 @@ const CRUDCertificate = () => {
     documentIdentification: '',
     course: '',
     description: '',
-    tokenId: '', 
-    transactionHash: '', 
+    tokenId: '',
+    transactionHash: '',
     contract_address: '',
   });
 
@@ -188,11 +192,18 @@ const CRUDCertificate = () => {
       documentIdentification: '',
       course: '',
       description: '',
-      tokenId: '', 
-      transactionHash: '', 
+      tokenId: '',
+      transactionHash: '',
       contract_address: '',
     });
     //Limpiar textboxs
+    setOpenCreateSection(false);
+    setIsSelectDisabled(false);
+    
+    setButtonText('USAR CONTRATO');
+    setContrato('');
+    setContractHash('');
+    setCertifType('proyecto');
   };
 
   const handleChange = (e) => {
@@ -221,7 +232,7 @@ const CRUDCertificate = () => {
       return { tx_hash, tokenId, timestamp };
     } catch (error) {
       console.error('Error creating certificate:', error);
-      return [null, null];
+      return { tx_hash: null, tokenId: null, timestamp: null };
     }
   };
 
@@ -236,8 +247,8 @@ const CRUDCertificate = () => {
     try {
       const { tx_hash, tokenId, timestamp } = await handleCreateCertificate(contractHash, formData.name, formData.documentIdentification, formData.course, formData.description);
 
-      if (tokenId != null) {
-          setFormData(prevState => {
+      if (tokenId != null && tx_hash != null && timestamp != null) {
+        setFormData(prevState => {
           const updatedFormData = {
             ...prevState,
             tokenId: tokenId,
@@ -245,7 +256,7 @@ const CRUDCertificate = () => {
             timestamp: timestamp.toString(),
             type: certifType
           };
-          
+
           // Almacenar datos en DB
           const receipt = submitCertificate(updatedFormData);
           console.log(receipt);
@@ -253,12 +264,29 @@ const CRUDCertificate = () => {
           handleOpenDialog();
           clearFormData();
           setPage(0);
-          return(updatedFormData);
-      });
+          return (updatedFormData);
+        });
+      }
+      else {
+        console.log("ELSE");
+        setModalMessage(" Transacción rechazada.");
+        // console.log(error.message);
+        handleOpenDialog(); 
+        console.log("END ELSE");
+        setOpen(false);
       }
     } catch (error) {
-      setModalMessage(`Error al crear el certificado: ${error.message}`);
-      console.log(error);
+      if (error.code === 4001) {
+        setModalMessage("Transacción rechazada por el usuario.");
+      }
+      else if (error.message.includes('contract method')) {
+        setModalMessage("Transacción rechazada por el usuario 2.");
+      } else {
+        setModalMessage(`Error al crear el certificado: ${error.message}`);
+      }
+      // setModalMessage(`Error al crear el certificado: ${error.message}`);
+      console.log("CATCH:", error);
+      handleOpenDialog();
       setOpen(false);
     } finally {
       setModalOpen(true);
@@ -270,17 +298,17 @@ const CRUDCertificate = () => {
   // Generate QR Code based on url
   const getTransactionHashQRCode = async (url) => {
     try {
-        const transactionHashQRCode = await QRCode.toDataURL(url);
-        return transactionHashQRCode.split(',')[1];
+      const transactionHashQRCode = await QRCode.toDataURL(url);
+      return transactionHashQRCode.split(',')[1];
     } catch (error) {
-        console.error('Error al generar el QR code:', error);
-        throw error;
+      console.error('Error al generar el QR code:', error);
+      throw error;
     }
   };
 
 
-const generateCertificateHTML = (rowData, transactionHashQRBase64) => {
-  try {
+  const generateCertificateHTML = (rowData, transactionHashQRBase64) => {
+    try {
       let html_template_copy;
       let doc_id;
       if (rowData.type == 'curso') {
@@ -293,11 +321,10 @@ const generateCertificateHTML = (rowData, transactionHashQRBase64) => {
       const course = rowData.course;
 
       // Reemplazar los placeholders con los datos de la fila específica
-      html_template_copy = html_template_copy.replace('{{web-title}}', `certificado-${rowData.name}-${
-        (function(text, maxLength) {
+      html_template_copy = html_template_copy.replace('{{web-title}}', `certificado-${rowData.name}-${(function (text, maxLength) {
           return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-      })(rowData.course, 20)
-      }-${formatDate(rowData.issued_at)}`);
+        })(rowData.course, 20)
+        }-${formatDate(rowData.issued_at)}`);
 
       html_template_copy = html_template_copy.replace('{{name}}', rowData.name);
       html_template_copy = html_template_copy.replace('{{documentIdentification}}', rowData.document_id);
@@ -326,26 +353,29 @@ const generateCertificateHTML = (rowData, transactionHashQRBase64) => {
       newWindow.document.open();
       newWindow.document.write(html_template_copy);
       newWindow.document.close();
-  } catch (error) {
+    } catch (error) {
       console.error('Error al generar el certificado HTML:', error);
-  }
-};
+    }
+  };
 
 
   const openCertificateHTML = async (rowData) => {
     try {
-        const url = `https://polygonscan.com/nft/${rowData.addresscontract}/${rowData.token_id}`;
-        const transactionHashQRBase64 = await getTransactionHashQRCode(url);
-        generateCertificateHTML(rowData, transactionHashQRBase64);
+      const url = `https://polygonscan.com/nft/${rowData.addresscontract}/${rowData.token_id}`;
+      const transactionHashQRBase64 = await getTransactionHashQRCode(url);
+      generateCertificateHTML(rowData, transactionHashQRBase64);
     } catch (error) {
-        console.error('Error al abrir el certificado HTML:', error);
+      console.error('Error al abrir el certificado HTML:', error);
     }
-};
+  };
 
-const handleOpenCertificate = () => {
-  openCertificateHTML(formData);
-};
+  const handleOpenCertificate = () => {
+    openCertificateHTML(formData);
+  };
 
+  const handleCancel = () => {
+    clearFormData();
+  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -378,7 +408,7 @@ const handleOpenCertificate = () => {
       }));
     } else {
       const selectedContract = contracts.find(contract => contract.idcontract === contrato);
-      
+
       if (selectedContract && selectedContract != undefined) {
         // Deshabilitar selección si se ha seleccionado un contrato
         setFormData(prevState => ({
@@ -405,25 +435,25 @@ const handleOpenCertificate = () => {
     >
       <Typography style={{ fontWeight: "bold" }}>
         {openCreateSection ? 'CREAR CERTIFICADO' : ''}</Typography>
-      { !openCreateSection ? (
+      {!openCreateSection ? (
         <Button
-                sx={{
-                  bgcolor: "#39C8C8",
-                  "&:hover": { bgcolor: "#45EEEE" },
-                  minWidth: "20%",
-                  minHeight: "20%",
-                  maxWidth: "40%",
-                  marginBottom: "0.5rem",
-                  // marginTop: "2rem"
-                }}
-                color="primary"
-                variant="contained"
-                onClick={handleOpenCreateSection}
-              >
-                Crear nuevo certificado
-              </Button>
+          sx={{
+            bgcolor: "#39C8C8",
+            "&:hover": { bgcolor: "#45EEEE" },
+            minWidth: "20%",
+            minHeight: "20%",
+            maxWidth: "40%",
+            marginBottom: "0.5rem",
+            // marginTop: "2rem"
+          }}
+          color="primary"
+          variant="contained"
+          onClick={handleOpenCreateSection}
+        >
+          Crear nuevo certificado
+        </Button>
 
-      ): (
+      ) : (
         <>
           <Typography component={'div'} label="Input 1"
             sx={{ minWidth: "20%" }}>Seleccione el contrato asociado a su billetera:</Typography>
@@ -439,45 +469,31 @@ const handleOpenCertificate = () => {
                 gap: 2,
                 alignItems: "center",
                 minWidth: "33.33%",
-    
+
               }}
             >
               <Typography component={'span'} label="Input 1">NOMBRE DEL CONTRATO</Typography>
               <FormControl required sx={{ minWidth: "90%" }} disabled={isSelectDisabled}>
-              <Select
-                labelId="demo-select-small-label"
-                id="demo-select-small"
-                value={contrato}
-                label="Contrato *"
-                onChange={handleSelectChange}
-                sx={{ minWidth: "90%" }}
-                input={<BootstrapInput />}
-                enab
-              >
-                <MenuItem value="">
-                  <em>Ninguno</em>
-                </MenuItem>
-                {contracts.map((contract) => (
-                  <MenuItem key={contract.idcontract} value={contract.idcontract}>
-                    {contract.namecontract}
+                <Select
+                  labelId="demo-select-small-label"
+                  id="demo-select-small"
+                  value={contrato}
+                  label="Contrato *"
+                  onChange={handleSelectChange}
+                  sx={{ minWidth: "90%" }}
+                  input={<BootstrapInput />}
+                  enab
+                >
+                  <MenuItem value="">
+                    <em>Ninguno</em>
                   </MenuItem>
-                ))}
-              </Select>
+                  {contracts.map((contract) => (
+                    <MenuItem key={contract.idcontract} value={contract.idcontract}>
+                      {contract.namecontract}
+                    </MenuItem>
+                  ))}
+                </Select>
               </FormControl>
-              {/* <StyledTextField
-                label="Contract address"
-                InputLabelProps={{
-                  style: { color: "white" },
-                }}
-                InputProps={{
-                  readOnly: true,
-                  style: { color: "white" },
-                }}
-                defaultValue=""
-                size="small"
-                id="outlined-disabled"
-                sx={{ minWidth: "90%" }}
-              /> */}
             </Box>
             <Box
               sx={{
@@ -520,7 +536,7 @@ const handleOpenCertificate = () => {
               <Button
                 sx={{
                   bgcolor: !isSelectDisabled ? "#39C8C8" : "#227878",
-                  "&:hover": { bgcolor: !isSelectDisabled ? "#45EEEE": "#2da0a0" },
+                  "&:hover": { bgcolor: !isSelectDisabled ? "#45EEEE" : "#2da0a0" },
                   minWidth: "60%",
                   minHeight: "70%",
                   maxWidth: "3rem",
@@ -544,7 +560,7 @@ const handleOpenCertificate = () => {
                 name="controlled-radio-buttons-group"
                 value={certifType}
                 onChange={handleChangeRadio}
-                sx={{display: "flex", flexDirection: 'row'}}
+                sx={{ display: "flex", flexDirection: 'row' }}
               >
                 <FormControlLabel value="proyecto" control={<Radio color="default" />} label="Proyecto de Investigación" />
                 <FormControlLabel value="curso" control={<Radio color="default" />} label="Curso" />
@@ -690,12 +706,13 @@ const handleOpenCertificate = () => {
                       sx={{ minWidth: "40%" }}
                     />
                   </Box>
-                  <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
-                  <Button
-                      type="submit" disabled={loading}
+                  <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between" }}>
+                    <Button
+                      onClick={handleCancel}
+                      disabled={loading}
                       sx={{
                         bgcolor: "rgba(214, 97, 97,0.85)",
-                        ":hover" : {bgcolor: 'rgba(214, 97, 97,0.95)' },
+                        ":hover": { bgcolor: 'rgba(214, 97, 97,0.95)' },
                         minWidth: "20%",
                         minHeight: "20%",
                         maxWidth: "45",
@@ -728,72 +745,44 @@ const handleOpenCertificate = () => {
                 </Box>
               </Box>
             </FormControl>
-          ):
-          (<></>)}
-            <Progress_loading open={open} handleClose={handleClose} message="Creando certificado ..." />
-            {error && <p>Error: {error.message}</p>}
-            {data && <p>Certificate issued successfully!</p>}
-            {/* <Modal
-              style={styleModal}
-              keepMounted
-              open={modalOpen} onClose={handleModalClose}
-              // Suggested code may be subject to a license. Learn more: ~LicenseLog:1029329151.
-              aria-labelledby="modal-modal-title"
-              aria-describedby="modal-modal-description"
-            >
-              <Box>
-                <Typography id="keep-mounted-modal-title" variant="h6" component="h2">
-                  ¿Desea ver el certificado?
-                </Typography>
-                <Typography id="modal-modal-description" variant="h6" component="h2">
-                  {modalMessage}
-                </Typography>
-                {/* Button to open html code store uin const html_certificate in new tab */}
-            {/* <Button
-                  onClick={() => window.open(html_template, '_blank')}
-                  sx={{
-                    bgcolor: "#39C8C8",
-                    "&:hover": { bgcolor: "#45EEEE" },
-                    minWidth: "20%",
-                    minHeight: "20%",
-                    maxWidth: "45",
-                    marginBottom: "2rem",
-                    // marginTop: "2rem"
-                  }}
-                  color="primary"
-                  variant="contained"
-                >
-                  VER CERTIFICADO
-                </Button>
-      
-      
-              </Box>
-            </Modal> */}
-            {openDialog && modalMessage === 'La transacción se realizó correctamente.' && (
-            <SucessfullyTransactionDialogSlide
-              open={openDialog}
-              handleClose={handleCloseDialog}
-            />
-            )}
-            {openDialog && modalMessage.includes('Error') && (
-              <CancelTransactionDialogSlide
-                open={openDialog}
-                handleClose={handleCloseDialog}
-              />
-            )}
+          ) :
+            (<></>)}
+          <Progress_loading open={open} handleClose={handleClose} message="Creando certificado ..." />
+          {error && <p>Error: {error.message}</p>}
+          {data && <p>Certificate issued successfully!</p>}
         </>
       )
-      }
+    }
+    {openDialog && modalMessage === 'La transacción se realizó correctamente.' && (
+      <SucessfullyTransactionDialogSlide
+        open={openDialog}
+        handleClose={handleCloseDialog}
+        />
+      )}
+    {openDialog && modalMessage.includes('rechazada') && (
+      <CancelTransactionDialogSlide
+        open={openDialog}
+        handleClose={handleCloseDialog}
+        message={modalMessage}
+      />
+    )}
+    {openDialog && (
+      <CancelTransactionDialogSlide
+        open={openDialog}
+        handleClose={handleCloseDialog}
+        message={modalMessage}
+      />
+    )}
       <Divider color="white" />
       {/* END CREATE CERTIFICATE */}
-      
+
       <Typography style={{ fontWeight: "bold" }}>LISTA DE CERTIFICADOS</Typography>
       <RadioGroup
         aria-labelledby="demo-controlled-radio-buttons-group"
         name="controlled-radio-buttons-group"
         value={dataCertificatesType}
         onChange={handleChangeRadioData}
-        sx={{display: "flex", flexDirection: 'row'}}
+        sx={{ display: "flex", flexDirection: 'row' }}
       >
         <FormControlLabel value={'proyecto'} control={<Radio color="default" />} label="Proyecto de Investigación" />
         <FormControlLabel value={'curso'} control={<Radio color="default" />} label="Curso" />
@@ -818,8 +807,8 @@ const handleOpenCertificate = () => {
                     style={{ minWidth: column.minWidth, color: 'white' }}
                   // sx={{ bgcolor: "white" }}
                   >
-                    {column.label === 'Curso/Proyecto' ? 
-                    dataCertificatesType.charAt(0).toUpperCase() + dataCertificatesType.slice(1) : column.label}
+                    {column.label === 'Curso/Proyecto' ?
+                      dataCertificatesType.charAt(0).toUpperCase() + dataCertificatesType.slice(1) : column.label}
                   </TableCell>
                 ))}
               </TableRow>

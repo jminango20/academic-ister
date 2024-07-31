@@ -90,7 +90,7 @@ const ConnectMetaMask = () => {
         elevation={6}
       >
         <img src={logoIster} alt="IsterLogo" style={{  maxWidth: '100%', marginBottom: '17%', filter: 'drop-shadow(2px 1px 1px rgba(0, 0, 0, 0.7))'}} />
-        <h2 style={{ color: 'white', marginBottom: '20%' }}>WEBPAGE NAME</h2>
+        <h2 style={{ color: 'white', marginBottom: '20%', textAlign: 'center' }}>CERTIFICADOS EDUCACIONALES ISTER</h2>
         <Button disabled={!ethWallet} className='btn-connect-meta' variant="contained" onClick={connectWallet} >
           <p className='btn-text'>Conectar Billetera MetaMask</p>
           <img src={logo} alt="MetaMask" style={{  maxHeight: '40px' }} />
@@ -110,14 +110,6 @@ const ConnectMetaMask = () => {
           }
       </Paper>
       <Progress_loading open={open} handleClose={handleClose} message="Conectando billetera Metamask ..." />
-      {/* <Backdrop
-        sx={{display: 'flex', flexDirection: 'column', color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={open}
-        onClick={handleClose}
-      >
-        <p className='text-hint'>Conectando billetera Metamask ...</p>
-        <CircularProgress color="inherit" />
-      </Backdrop> */}
     </Container>
   );
 };

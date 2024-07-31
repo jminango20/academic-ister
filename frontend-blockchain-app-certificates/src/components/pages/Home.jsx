@@ -17,6 +17,8 @@ import {
 import {theme_personal, DrawerHeader, AppBar, Drawer} from '@utils/styles'
 import "@assets/styles/main-style.css";
 import RU from "@assets/img/RU.png";
+import Polygon_Logo from "@assets/img/PoweredbyPolygon.svg"
+import Polygon_Icon from "@assets/img/iconPolygon.svg"
 
 //Component
 import TabbarNavigation from "../Tabbar";
@@ -51,7 +53,7 @@ export default function Home() {
   const theme = useTheme();
   const [open, setOpen] = useState(true);
   const [isSmallScreen, setIsSmallScreen] = useState(
-    window.innerWidth < 520
+    window.innerWidth < 920
   );
   const { isCopied, copyToClipboard } = useCopyToClipboard();
 
@@ -70,7 +72,7 @@ export default function Home() {
   }, []);
 
   const handleResize = () => {
-    setIsSmallScreen(window.innerWidth < 520);
+    setIsSmallScreen(window.innerWidth < 920);
   };
 
   return (
@@ -80,6 +82,7 @@ export default function Home() {
         <AppBar position="fixed" open={open}>
           <Toolbar sx={{ bgcolor: "#005F7D", justifyContent: "space-between" }}>
             <IconButton
+              className="btn-base"
               color="inherit"
               aria-label="open drawer"
               onClick={handleDrawerOpen}
@@ -94,7 +97,7 @@ export default function Home() {
             <Typography variant="h6" noWrap component="div">
               {APP_NAME}
             </Typography>
-            {!open && !isSmallScreen ? (
+            {!isSmallScreen ? (
               <Button
                 className="btn-logout"
                 sx={{bgcolor: 'rgba(214, 97, 97,0.85)', ":hover" : {bgcolor: 'rgba(214, 97, 97,0.95)' }}}
@@ -110,6 +113,7 @@ export default function Home() {
                 color="inherit"
                 aria-label="disconnect-wallet"
                 size="small"
+                className="btn-base"
               >
                 <ExitToAppIcon fontSize="small" />
               </IconButton>
@@ -118,7 +122,7 @@ export default function Home() {
         </AppBar>
         <Drawer variant="permanent" open={open}>
           <DrawerHeader sx={{ bgcolor: "#005F7D" }}>
-            <IconButton onClick={handleDrawerClose} sx={{ color: "white" }}>
+            <IconButton className="btn-base" onClick={handleDrawerClose} sx={{ color: "white" }}>
               {theme.direction === "rtl" ? (
                 <ChevronRightIcon />
               ) : (
@@ -168,6 +172,7 @@ export default function Home() {
               }}
             >
               <IconButton
+                className="btn-base"
                 onClick={handleDrawerOpen}
                 sx={{ color: "white" }}
                 color="inherit"
@@ -216,10 +221,35 @@ export default function Home() {
                 color="inherit"
                 aria-label="address-wallet"
                 size="medium"
+                className="btn-base"
               >
                 <ContentCopyIcon fontSize="medium" />
               </IconButton>
             </Box>
+            {/* <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            > */}
+              <a style={{display: "flex", flexDirection: "row", justifyContent: "center",
+                marginTop: open ? "0%" : "25%",
+                padding: 0
+              }} 
+              href="https://polygon.technology/" target="_blank" rel="noopener noreferrer">
+                <img
+                    className="btn-polygon"
+                    src={open ? Polygon_Logo : Polygon_Icon}
+                    alt="polygon-chain-picture"
+                    style={{
+                      width: open ? "100%" : "70%",
+                      height: open ? "100%" : "100%",
+                    }}
+                  />
+              </a>
+            {/* </Box> */}
           </Stack>
         </Drawer>
         <Box component="main" 

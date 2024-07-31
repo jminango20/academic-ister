@@ -4,7 +4,9 @@
 // https://docs.web3js.org/
 
 import Web3 from 'web3';
-import { ethers } from 'ethers';
+import { 
+    
+ } from 'ethers';
 import {loadAcademicCertificateI_ABI} from '@smartContract'
 let academicContract;
 let abi, accounts, web3;
