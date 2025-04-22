@@ -1,0 +1,589 @@
+{
+	"info": {
+		"_postman_id": "79924c44-f7a9-4308-a599-795bd129509a",
+		"name": "Node Js - Web3J",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "14861615"
+	},
+	"item": [
+		{
+			"name": "Academic Certificate Factory",
+			"item": [
+				{
+					"name": "Deploy Academic Certificate",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"newOwner\":\"0x0Fc6FFfFE3a16a55D87297562e560128A416688D\",\r\n    \"institution\":\"Ister\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/factory/deployAcademicCertificate",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"factory",
+								"deployAcademicCertificate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Last Academic Certificate by Owner",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"newOwner\":\"0x0Fc6FFfFE3a16a55D87297562e560128A416688D\",\r\n    \"institutionName\":\"Ister\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/factory/getLastAcademicCertificateDeployed/0x0Fc6FFfFE3a16a55D87297562e560128A416688D",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"factory",
+								"getLastAcademicCertificateDeployed",
+								"0x0Fc6FFfFE3a16a55D87297562e560128A416688D"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Academic Certificate by Owner",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"newOwner\":\"0x0Fc6FFfFE3a16a55D87297562e560128A416688D\",\r\n    \"institutionName\":\"Ister\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/factory/getAcademicCertificateDeployed/0x0Fc6FFfFE3a16a55D87297562e560128A416688D",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"factory",
+								"getAcademicCertificateDeployed",
+								"0x0Fc6FFfFE3a16a55D87297562e560128A416688D"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Last Academic By Institution",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"institution\":\"Ister\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/factory/getLastAcademicCertificateDeployedByInstitution",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"factory",
+								"getLastAcademicCertificateDeployedByInstitution"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Academic By Institution",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"institution\":\"Ister\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/factory/getAcademicCertificateDeployedByInstitution",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"factory",
+								"getAcademicCertificateDeployedByInstitution"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Add Products",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 3,\r\n    \"name\": \"PC\",\r\n    \"price\": 100,\r\n    \"quantity\": 10\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/products",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Products",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/products",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product By Id",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/products/3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"products",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product By Id Copy",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Juan\",\r\n    \"price\": 500,\r\n    \"quantity\": 30\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/products/3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"products",
+								"3"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Academic Certificate",
+			"item": [
+				{
+					"name": "Issue Certificate",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"David\",\r\n    \"documentIdentification\": \"1716042435\",\r\n    \"course\": \"Test\",\r\n    \"description\": \"Curso Practico\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/academic/issueCertificate",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"academic",
+								"issueCertificate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Certificate",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"tokenId\":0,\r\n    \"name\": \"Juan\",\r\n    \"documentIdentification\": \"1716042443\",\r\n    \"course\": \"Test\",\r\n    \"description\": \"Curso Practico\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/academic/verifyCertificate",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"academic",
+								"verifyCertificate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Certificate Metadata",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/academic/certificate/4",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"academic",
+								"certificate",
+								"4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Certificates by CI",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"documentId\":\"12345\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/academic/certificateIds",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"academic",
+								"certificateIds"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Institution Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"tokenId\":0,\r\n    \"name\": \"Juan\",\r\n    \"documentIdentification\": \"1716042443\",\r\n    \"course\": \"Blockchain\",\r\n    \"description\": \"Curso Praactico\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/academic/institutionName",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"academic",
+								"institutionName"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Issue Certificates Batch",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"names\": [\"John Doe 1\", \"Jane Doe 1\"],\r\n    \"documentIdentifications\": [\"12345\", \"67890\"],\r\n    \"course\": \"Blockchain 113\",\r\n    \"description\": \"Completion of Blockchain 101 course\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/academic/issueCertificatesBatch",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"academic",
+								"issueCertificatesBatch"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Academic Certificate Query DB",
+			"item": [
+				{
+					"name": "Verify Certificate DB",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"tokenId\":37,\r\n    \"name\": \"Juan\",\r\n    \"documentIdentification\": \"1716042443\",\r\n    \"course\": \"Test 7\",\r\n    \"description\": \"Curso Practico\"\r\n}\r\n\r\n\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/academic/verifyCertificateDB",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"academic",
+								"verifyCertificateDB"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Certificate Metadata DB",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/academic/certificateDB/37",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"academic",
+								"certificateDB",
+								"37"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Certificates by CI DB",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"documentId\":\"1716042443\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/academic/certificateIdsDB",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"academic",
+								"certificateIdsDB"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
