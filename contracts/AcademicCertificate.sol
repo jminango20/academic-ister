@@ -40,7 +40,9 @@ contract AcademicCertificate is IAcademicCertificate, ERC1155, Ownable {
     struct CertificateMetadata {
         string description;
         string institution;
+        string area;
         uint256 issuedAt;
+        string issuedDate;
         string startDate;         // Start date of the work period
         string endDate;           // End date of the work period
         uint256 hoursWorked;      // Number of hours worked
@@ -125,7 +127,9 @@ contract AcademicCertificate is IAcademicCertificate, ERC1155, Ownable {
         certificateExtraData[tokenId] = CertificateMetadata(
             params.description,
             params.institution,
+            params.area,
             timestamp,
+            params.issuedDate,
             params.startDate,
             params.endDate,
             params.hoursWorked,

@@ -11,6 +11,8 @@ interface IAcademicCertificate {
         string course;
         string description;
         string institution;
+        string area;
+        string issuedDate;
         string startDate;
         string endDate;
         uint256 hoursWorked;
@@ -23,10 +25,10 @@ interface IAcademicCertificate {
     event CertificateMinted(
         uint256 indexed tokenId,
         string name,
-        string documentIdentification,
+        string indexed documentIdentification,
         string course,
         string description,
-        string institution,
+        string indexed institution,
         uint256 issuedAt
     );
 
