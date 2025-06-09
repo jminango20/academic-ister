@@ -4,7 +4,7 @@ require('dotenv').config();
 // Configuration
 const CONFIG = {
   RPC_URL: process.env.API_URL || "http://localhost:8545",
-  CONTRACT_ADDRESS: "0x082659D1b27F0fc2898dDE7C71Eff922f0ab905B",
+  CONTRACT_ADDRESS: process.env.CONTRACT_ADDRESS_ACADEMIC_ISTER,
   PRIVATE_KEY: process.env.PRIVATE_KEY,
 };
 
