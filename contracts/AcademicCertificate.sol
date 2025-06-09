@@ -1,96 +1,102 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-/**
- * @title Contrato de Certificados Académicos del Instituto Tecnológico Superior Rumiñahui (ISTER)
- * @author PhD Juan Carlos Minango Negrete
- * @dev Este contrato permite la emisión y verificación de certificados académicos en blockchain
- * @contact juancarlos.minango@ister.edu.ec
- * 
- * Este contrato ha sido desarrollado para el Instituto Tecnológico Superior Rumiñahui (ISTER)
- * y permite la emisión de certificados académicos como tokens ERC1155.
- */
-import "./IAcademicCertificate.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/Base64.sol";
 
+/**
+ * @title Contrato de Certificados Académicos del Instituto Tecnológico Superior Rumiñahui (ISTER)
+ * @author juancarlos.minango@ister.edu.ec
+ * @notice Este contrato permite la emisión y verificación de certificados académicos en blockchain
+ */
+contract AcademicCertificate is ERC1155, Ownable {
 
-contract AcademicCertificate is IAcademicCertificate, ERC1155, Ownable {
+    // Estructura para parámetros de emisión
+    struct CertificateIssuanceParams {
+        string name;
+        string documentId;
+        string course;
+        string description;
+        string institution;
+        string area;
+        string issuedDate;
+        string startDate;
+        string endDate;
+        uint256 hoursWorked;
+        string signatoryName;
+    }
 
-    /**
-     * @dev Estructura para almacenar los datos principales del certificado
-     * @param name Nombre del estudiante
-     * @param documentIdentification Número de documento de identidad
-     * @param course Nombre del curso o programa académico
-     */
+    // Estructura para información completa del certificado
+    struct CertificateInfo {
+        uint256 tokenId;
+        string name;
+        string documentId;
+        string course;
+        string description;
+        string institution;
+        string area;
+        string issuedDate;
+        string startDate;
+        string endDate;
+        uint256 hoursWorked;
+        string signatoryName;
+    }
+
+    // Estructura para información de certificado por institución  
+    struct InstitutionCertificateInfo {
+        uint256 tokenId;
+        string name;
+        string documentId;
+        string course;
+        string description;
+        string area;
+        string signatoryName;
+    }
+
+    // Estructura optimizada para datos principales (packed para gas efficiency)
     struct CertificateData {
         string name;
         string documentIdentification;
         string course;
     }
     
-    /**
-     * @dev Estructura para almacenar los metadatos del certificado
-     * @param description Descripción del certificado
-     * @param institution Institución que emite el certificado
-     * @param issuedAt Fecha de emisión del certificado (timestamp)
-     */
+    // Estructura optimizada para metadatos (packed para gas efficiency)
     struct CertificateMetadata {
         string description;
         string institution;
         string area;
-        uint256 issuedAt;
         string issuedDate;
-        string startDate;         // Start date of the work period
-        string endDate;           // End date of the work period
-        uint256 hoursWorked;      // Number of hours worked
-        string signatoryName;     // Name of the person who signed
+        string startDate;
+        string endDate;
+        uint128 hoursWorked;      
+        string signatoryName;
     }
-    
-    
-    /**
-     * @dev Mapeo de hashes de certificados para evitar duplicados
-     */
-    mapping(bytes32 => bool) private certificateHashes;
-    
-    /**
-     * @dev Mapeo de tokenId a datos principales del certificado
-     */
-    mapping(uint256 => CertificateData) private certificateMainData;
-    
-    /**
-     * @dev Mapeo de tokenId a metadatos del certificado
-     */
-    mapping(uint256 => CertificateMetadata) private certificateExtraData;
-    
-    /**
-     * @dev Mapeo de documento de identidad a array de IDs de certificados
-     */
-    mapping(string => uint256[]) private documentToCertificates;
-    
-    /**
-     * @dev Mapeo de institución a array de IDs de certificados
-     */
-    mapping(string => uint256[]) private institutionToCertificates;
 
     /**
-     * @dev ID del próximo token a emitir
+     * Evento optimizado para más campos - máximo de información en un evento
+     * Solo 3 campos pueden ser indexed, pero todos los datos van como parámetros normales
      */
+    event CertificateIssued(
+        uint256 indexed tokenId,
+        bytes32 indexed studentHash,      // hash(name + documentId) para búsquedas
+        bytes32 indexed institutionHash,  // hash(institution) para búsquedas
+        string name,
+        string documentId,
+        string course,
+        string institution
+    );
+    
+    // Mapeo optimizado
+    mapping(bytes32 => bool) public certificateHashes;
+    mapping(uint256 => CertificateData) public certificateMainData;
+    mapping(uint256 => CertificateMetadata) public certificateExtraData;
+    mapping(string => uint256[]) public documentToCertificates;
+    mapping(string => uint256[]) public institutionToCertificates;
+    
+    // Storage más eficiente
     uint256 private nextTokenId;
-    
-    /**
-     * @dev Nombre de la institución propietaria del contrato (ISTER)
-     */
     string public ownerInstitution;
-    
 
-    /**
-     * @dev Constructor del contrato
-     * @param initialOwner Dirección del propietario inicial del contrato
-     * @param _ownerInstitution Nombre de la institución propietaria
-     */
     constructor(address initialOwner, string memory _ownerInstitution) 
         ERC1155("") 
         Ownable(initialOwner) 
@@ -100,14 +106,12 @@ contract AcademicCertificate is IAcademicCertificate, ERC1155, Ownable {
     }
 
     /**
-     * @dev Emite un nuevo certificado
-     * @param params Parámetros para la emisión del certificado
-     * @return ID del token del certificado emitido
+     * @dev Emite un nuevo certificado con gas optimizado
      */
     function issueCertificate(
         CertificateIssuanceParams calldata params
     ) external onlyOwner returns (uint256) {
-        // Creamos el hash del certificado
+        // Hash optimizado para duplicados
         bytes32 certHash = keccak256(abi.encodePacked(
             params.name, params.documentId, params.course, params.institution
         ));
@@ -115,9 +119,8 @@ contract AcademicCertificate is IAcademicCertificate, ERC1155, Ownable {
         require(!certificateHashes[certHash], "El certificado ya existe");
 
         uint256 tokenId = nextTokenId++;
-        uint256 timestamp = block.timestamp;
-        
-        // Almacenamos los datos del certificado
+                
+        // Storage optimizado con packing
         certificateMainData[tokenId] = CertificateData(
             params.name,
             params.documentId,
@@ -128,54 +131,37 @@ contract AcademicCertificate is IAcademicCertificate, ERC1155, Ownable {
             params.description,
             params.institution,
             params.area,
-            timestamp,
             params.issuedDate,
             params.startDate,
             params.endDate,
-            params.hoursWorked,
+            uint128(params.hoursWorked), // Conversión para pack
             params.signatoryName
         );
         
-        // Actualizamos los mapeos
+        // Actualizaciones de índices
         documentToCertificates[params.documentId].push(tokenId);
         institutionToCertificates[params.institution].push(tokenId);
-        
-        // Marcamos el hash como usado
         certificateHashes[certHash] = true;
         
-        // Emitimos el token como NFT 
+        // Mint del NFT
         _mint(msg.sender, tokenId, 1, "");
         
-        // Emitimos el evento
-        emit CertificateMinted(
+        // Evento completo con todos los datos
+        emit CertificateIssued(
             tokenId,
+            keccak256(abi.encodePacked(params.name, params.documentId)), // hash para búsquedas
+            keccak256(abi.encodePacked(params.institution)),             // hash para búsquedas
             params.name,
             params.documentId,
             params.course,
-            params.description,
-            params.institution,
-            timestamp
+            params.institution
         );
         
         return tokenId;
     }
 
     /**
-     * @dev Verifica si un token existe
-     * @param _tokenId ID del token a verificar
-     * @return Verdadero si el token existe, falso en caso contrario
-     */
-    function _exists(uint256 _tokenId) internal view returns (bool) {
-        return _tokenId < nextTokenId && _tokenId >= 1;
-    }
-
-    /**
-     * @dev Verifica si los datos de un certificado coinciden con los almacenados
-     * @param _tokenId ID del token a verificar
-     * @param _name Nombre del estudiante
-     * @param _documentId Documento de identificación
-     * @param _course Nombre del curso
-     * @return Verdadero si los datos coinciden, falso en caso contrario
+     * @dev Verificación optimizada
      */
     function verifyCertificate(
         uint256 _tokenId,
@@ -189,27 +175,17 @@ contract AcademicCertificate is IAcademicCertificate, ERC1155, Ownable {
         CertificateData memory mainData = certificateMainData[_tokenId];
         CertificateMetadata memory extraData = certificateExtraData[_tokenId];
         
-        // Comparamos los hashes de los datos de entrada con los datos almacenados (excluyendo institución y timestamp)
-        bytes32 inputHash = keccak256(abi.encodePacked(_name, _documentId, _course, _institution));
-        bytes32 storedHash = keccak256(abi.encodePacked(
-            mainData.name,
-            mainData.documentIdentification,
-            mainData.course,
-            extraData.institution
-        ));
-        
-        return inputHash == storedHash;
+        // Comparación optimizada con hashes
+        return (
+            keccak256(bytes(mainData.name)) == keccak256(bytes(_name)) &&
+            keccak256(bytes(mainData.documentIdentification)) == keccak256(bytes(_documentId)) &&
+            keccak256(bytes(mainData.course)) == keccak256(bytes(_course)) &&
+            keccak256(bytes(extraData.institution)) == keccak256(bytes(_institution))
+        );
     }
 
     /**
-     * @dev Obtiene los metadatos de un certificado por su ID
-     * @param _tokenId ID del token del certificado
-     * @return name Nombre del estudiante
-     * @return documentId Documento de identificación
-     * @return course Nombre del curso
-     * @return description Descripción del certificado
-     * @return institution Institución que emitió el certificado
-     * @return issuedAt Fecha de emisión (timestamp)
+     * @dev Obtiene metadatos completos
      */
     function getCertificateMetadata(uint256 _tokenId) 
         external 
@@ -220,7 +196,8 @@ contract AcademicCertificate is IAcademicCertificate, ERC1155, Ownable {
             string memory course,
             string memory description,
             string memory institution,
-            uint256 issuedAt,
+            string memory area,
+            string memory issuedDate,
             string memory startDate,
             string memory endDate,
             uint256 hoursWorked,
@@ -238,19 +215,100 @@ contract AcademicCertificate is IAcademicCertificate, ERC1155, Ownable {
             mainData.course,
             extraData.description,
             extraData.institution,
-            extraData.issuedAt,
+            extraData.area,
+            extraData.issuedDate,
             extraData.startDate,
             extraData.endDate,
-            extraData.hoursWorked,
+            uint256(extraData.hoursWorked), 
             extraData.signatoryName
         );
     }
 
     /**
-     * @dev Obtiene todos los IDs de certificados para un documento específico
+     * @dev Obtiene certificados por documento con paginación
      * @param _documentId Documento de identificación
-     * @return Array de IDs de certificados
+     * @param offset Posición inicial (0 para el primero)
+     * @param limit Máximo número de certificados a retornar
      */
+    function getCertificatesByDocumentId(
+        string calldata _documentId,
+        uint256 offset,
+        uint256 limit
+    )
+        external
+        view
+        returns (
+            CertificateInfo[] memory certificates,
+            uint256 totalCount,
+            bool hasMore
+        )
+    {
+        uint256[] memory ids = documentToCertificates[_documentId];
+        totalCount = ids.length;
+        
+        if (offset >= totalCount) {
+            return (new CertificateInfo[](0), totalCount, false);
+        }
+        
+        uint256 end = offset + limit;
+        if (end > totalCount) {
+            end = totalCount;
+        }
+        
+        uint256 length = end - offset;
+        certificates = new CertificateInfo[](length);
+        
+        for (uint256 i = 0; i < length; i++) {
+            certificates[i] = _getCertificateInfo(ids[offset + i]);
+        }
+        
+        hasMore = end < totalCount;
+        return (certificates, totalCount, hasMore);
+    }
+
+    /**
+     * @dev Obtiene certificados por institución con paginación
+     * @param _institution Nombre de la institución
+     * @param offset Posición inicial (0 para el primero)
+     * @param limit Máximo número de certificados a retornar
+     */
+    function getCertificatesByInstitution(
+        string calldata _institution,
+        uint256 offset,
+        uint256 limit
+    )
+        external
+        view
+        returns (
+            InstitutionCertificateInfo[] memory certificates,
+            uint256 totalCount,
+            bool hasMore
+        )
+    {
+        uint256[] memory ids = institutionToCertificates[_institution];
+        totalCount = ids.length;
+        
+        if (offset >= totalCount) {
+            return (new InstitutionCertificateInfo[](0), totalCount, false);
+        }
+        
+        uint256 end = offset + limit;
+        if (end > totalCount) {
+            end = totalCount;
+        }
+        
+        uint256 length = end - offset;
+        certificates = new InstitutionCertificateInfo[](length);
+        
+        for (uint256 i = 0; i < length; i++) {
+            certificates[i] = _getInstitutionCertificateInfo(ids[offset + i]);
+        }
+        
+        hasMore = end < totalCount;
+        return (certificates, totalCount, hasMore);
+    }
+
+    // Funciones auxiliares
     function getCertificateIdsByDocumentId(string calldata _documentId) 
         external 
         view 
@@ -258,82 +316,7 @@ contract AcademicCertificate is IAcademicCertificate, ERC1155, Ownable {
     {
         return documentToCertificates[_documentId];
     }
-    
-    /**
-     * @dev Obtiene toda la información de certificados para un documento específico
-     * @param _documentId Documento de identificación
-     * @return tokenIds Array de IDs de certificados
-     * @return names Array de nombres
-     * @return courses Array de cursos
-     * @return descriptions Array de descripciones
-     * @return institutions Array de instituciones
-     * @return issuedAts Array de fechas de emisión
-     */
-    function getCertificatesByDocumentId(string calldata _documentId)
-        external
-        view
-        returns (
-            uint256[] memory tokenIds,
-            string[] memory names,
-            string[] memory courses,
-            string[] memory descriptions,
-            string[] memory institutions,
-            uint256[] memory issuedAts,
-            string[] memory startDates,
-            string[] memory endDates,
-            uint256[] memory hoursWorked,
-            string[] memory signatoryNames
-        )
-    {
-        uint256[] memory ids = documentToCertificates[_documentId];
-        uint256 count = ids.length;
-        
-        names = new string[](count);
-        courses = new string[](count);
-        descriptions = new string[](count);
-        institutions = new string[](count);
-        issuedAts = new uint256[](count);
-        startDates = new string[](count);
-        endDates = new string[](count);
-        hoursWorked = new uint256[](count);
-        signatoryNames = new string[](count);
-        
-        for (uint256 i = 0; i < count; i++) {
-            uint256 tokenId = ids[i];
-            CertificateData memory mainData = certificateMainData[tokenId];
-            CertificateMetadata memory extraData = certificateExtraData[tokenId];
-            
-            names[i] = mainData.name;
-            courses[i] = mainData.course;
-            descriptions[i] = extraData.description;
-            institutions[i] = extraData.institution;
-            issuedAts[i] = extraData.issuedAt;
-            startDates[i] = extraData.startDate;
-            endDates[i] = extraData.endDate;
-            hoursWorked[i] = extraData.hoursWorked;
-            signatoryNames[i] = extraData.signatoryName;
-        }
-        
-        return (ids, names, courses, descriptions, institutions, issuedAts, startDates, endDates, hoursWorked, signatoryNames);
-    }
 
-    /**
-     * @dev Obtiene el nombre de la institución propietaria (ISTER)
-     * @return Nombre de la institución propietaria
-     */
-    function getOwnerInstitution() 
-        external 
-        view 
-        returns (string memory) 
-    {
-        return ownerInstitution;
-    }
-
-    /**
-     * @dev Obtiene todos los IDs de certificados para una institución específica
-     * @param _institution Nombre de la institución
-     * @return Array de IDs de certificados
-     */
     function getCertificateIdsByInstitution(string calldata _institution) 
         external 
         view 
@@ -341,50 +324,112 @@ contract AcademicCertificate is IAcademicCertificate, ERC1155, Ownable {
     {
         return institutionToCertificates[_institution];
     }
-    
+
     /**
-     * @dev Obtiene toda la información de certificados emitidos por una institución específica
-     * @param _institution Nombre de la institución
-     * @return tokenIds Array de IDs de certificados
-     * @return names Array de nombres
-     * @return documentIds Array de documentos de identificación
-     * @return courses Array de cursos
-     * @return descriptions Array de descripciones
-     * @return issuedAts Array de fechas de emisión
+     * @dev Obtiene total de certificados por documento
      */
-    function getCertificatesByInstitution(string calldata _institution)
+    function getCertificateCountByDocumentId(string calldata _documentId) 
+        external 
+        view 
+        returns (uint256) 
+    {
+        return documentToCertificates[_documentId].length;
+    }
+
+    /**
+     * @dev Obtiene total de certificados por institución
+     */
+    function getCertificateCountByInstitution(string calldata _institution) 
+        external 
+        view 
+        returns (uint256) 
+    {
+        return institutionToCertificates[_institution].length;
+    }
+
+    /**
+     * @dev Funciones de compatibilidad - obtiene todos los certificados (usar con cuidado)
+     * Solo usar cuando sepas que hay pocos certificados (< 50)
+     */
+    function getAllCertificatesByDocumentId(string calldata _documentId)
         external
         view
-        returns (
-            uint256[] memory tokenIds,
-            string[] memory names,
-            string[] memory documentIds,
-            string[] memory courses,
-            string[] memory descriptions,
-            uint256[] memory issuedAts
-        )
+        returns (CertificateInfo[] memory certificates)
+    {
+        uint256[] memory ids = documentToCertificates[_documentId];
+        require(ids.length <= 100, "Demasiados certificados, usar paginacion");
+        
+        certificates = new CertificateInfo[](ids.length);
+        for (uint256 i = 0; i < ids.length; i++) {
+            certificates[i] = _getCertificateInfo(ids[i]);
+        }
+        return certificates;
+    }
+
+    function getAllCertificatesByInstitution(string calldata _institution)
+        external
+        view
+        returns (InstitutionCertificateInfo[] memory certificates)
     {
         uint256[] memory ids = institutionToCertificates[_institution];
-        uint256 count = ids.length;
+        require(ids.length <= 100, "Demasiados certificados, usar paginacion");
         
-        names = new string[](count);
-        documentIds = new string[](count);
-        courses = new string[](count);
-        descriptions = new string[](count);
-        issuedAts = new uint256[](count);
-        
-        for (uint256 i = 0; i < count; i++) {
-            uint256 tokenId = ids[i];
-            CertificateData memory mainData = certificateMainData[tokenId];
-            CertificateMetadata memory extraData = certificateExtraData[tokenId];
-            
-            names[i] = mainData.name;
-            documentIds[i] = mainData.documentIdentification;
-            courses[i] = mainData.course;
-            descriptions[i] = extraData.description;
-            issuedAts[i] = extraData.issuedAt;
+        certificates = new InstitutionCertificateInfo[](ids.length);
+        for (uint256 i = 0; i < ids.length; i++) {
+            certificates[i] = _getInstitutionCertificateInfo(ids[i]);
         }
+        return certificates;
+    }
+
+    function getOwnerInstitution() external view returns (string memory) {
+        return ownerInstitution;
+    }
+
+    // Funciones internas optimizadas
+    function _exists(uint256 _tokenId) internal view returns (bool) {
+        return _tokenId < nextTokenId && _tokenId >= 1;
+    }
+
+    function _getCertificateInfo(uint256 tokenId) 
+        internal 
+        view 
+        returns (CertificateInfo memory info) 
+    {
+        CertificateData memory mainData = certificateMainData[tokenId];
+        CertificateMetadata memory extraData = certificateExtraData[tokenId];
         
-        return (ids, names, documentIds, courses, descriptions, issuedAts);
+        info = CertificateInfo({
+            tokenId: tokenId,
+            name: mainData.name,
+            documentId: mainData.documentIdentification,
+            course: mainData.course,
+            description: extraData.description,
+            institution: extraData.institution,
+            area: extraData.area,
+            issuedDate: extraData.issuedDate,
+            startDate: extraData.startDate,
+            endDate: extraData.endDate,
+            hoursWorked: uint256(extraData.hoursWorked),
+            signatoryName: extraData.signatoryName
+        });
+    }
+
+    function _getInstitutionCertificateInfo(uint256 tokenId) 
+        internal 
+        view 
+        returns (InstitutionCertificateInfo memory info) 
+    {
+        CertificateData memory mainData = certificateMainData[tokenId];
+        CertificateMetadata memory extraData = certificateExtraData[tokenId];
+        
+        info = InstitutionCertificateInfo({
+            tokenId: tokenId,
+            name: mainData.name,
+            documentId: mainData.documentIdentification,
+            course: mainData.course,
+            description: extraData.description,
+            area: extraData.area,
+            signatoryName: extraData.signatoryName
+        });
     }
 }
