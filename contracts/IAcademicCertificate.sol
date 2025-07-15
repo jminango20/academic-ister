@@ -1,43 +1,94 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+struct CertificateIssuanceParams {
+    string name;
+    string documentId;
+    string course;
+    string description;
+    string institution;
+    string area;
+    string issuedDate;
+    string startDate;
+    string endDate;
+    uint256 hoursWorked;
+    string signatoryName;
+}
+
+struct CertificateInfo {
+    uint256 tokenId;
+    string name;
+    string documentId;
+    string course;
+    string description;
+    string institution;
+    string area;
+    string issuedDate;
+    string startDate;
+    string endDate;
+    uint256 hoursWorked;
+    string signatoryName;
+}
+
+struct InstitutionCertificateInfo {
+    uint256 tokenId;
+    string name;
+    string documentId;
+    string course;
+    string description;
+    string area;
+    string signatoryName;
+}
+
 interface IAcademicCertificate {
+    event CertificateMinted(
+        uint256 indexed tokenId,
+        string name,
+        string documentId,
+        string course,
+        string description,
+        string institution,
+        uint256 timestamp
+    );
 
-    struct Certificate {
-        string name;
-        string documentIdentification;
-        string course;
-        string description;
-    }
-
-    event CertificateMinted(uint256 indexed tokenId, string name, string documentIdentification, string course, string description);
-
-    function issueCertificate(
-        string memory name, 
-        string memory documentIdentification, 
-        string memory course, 
-        string memory description
-    ) external returns (uint256);
-
-    function issueCertificatesBatch(
-        string[] memory names, 
-        string[] memory documentIdentifications, 
-        string memory course, 
-        string memory description
-    ) external; 
-
+    function issueCertificate(CertificateIssuanceParams calldata params) external returns (uint256);
+    
     function verifyCertificate(
-        uint256 tokenId, 
-        string memory name, 
-        string memory documentIdentification, 
-        string memory course,
-        string memory description
+        uint256 _tokenId,
+        string calldata _name,
+        string calldata _documentId,
+        string calldata _course,
+        string calldata _institution
     ) external view returns (bool);
 
-    function getCertificateMetadata(uint256 tokenId) external view returns (Certificate memory);
+    function getCertificateMetadata(uint256 _tokenId) 
+        external 
+        view 
+        returns (
+            string memory name,
+            string memory documentId,
+            string memory course,
+            string memory description,
+            string memory institution,
+            string memory area,
+            string memory issuedDate,
+            string memory startDate,
+            string memory endDate,
+            uint256 hoursWorked,
+            string memory signatoryName
+        );
 
-    function getCertificateIdsByDocumentId(string memory documentIdentification) external view returns (uint256[] memory);
+    function getCertificateIdsByDocumentId(string calldata _documentId) 
+        external view returns (uint256[] memory);
+    
+    function getCertificatesByDocumentId(string calldata _documentId) 
+        external view returns (CertificateInfo[] memory);
 
-    function getInstitutionName() external view returns (string memory);
+    function getOwnerInstitution() external view returns (string memory);
 
+    function getCertificateIdsByInstitution(string calldata _institution) 
+        external view returns (uint256[] memory);
+    
+    function getCertificatesByInstitution(string calldata _institution) 
+        external view returns (InstitutionCertificateInfo[] memory);
 }

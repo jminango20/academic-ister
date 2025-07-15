@@ -3,105 +3,433 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./IAcademicCertificate.sol";
 
-contract AcademicCertificate is IAcademicCertificate, ERC1155, Ownable {
+/**
+ * @title Contrato de Certificados Académicos del Instituto Tecnológico Superior Rumiñahui (ISTER)
+ * @author juancarlos.minango@ister.edu.ec
+ * @notice Este contrato permite la emisión y verificación de certificados académicos en blockchain
+ */
+contract AcademicCertificate is ERC1155, Ownable {
 
-    mapping(bytes32 => bool) public certificateExists;
-    mapping(uint256 => Certificate) public certificates;
-    mapping(string => uint256[]) internal certificatesByDocumentId;
+    // Estructura para parámetros de emisión
+    struct CertificateIssuanceParams {
+        string name;
+        string documentId;
+        string course;
+        string description;
+        string institution;
+        string area;
+        string issuedDate;
+        string startDate;
+        string endDate;
+        uint256 hoursWorked;
+        string signatoryName;
+    }
+
+    // Estructura para información completa del certificado
+    struct CertificateInfo {
+        uint256 tokenId;
+        string name;
+        string documentId;
+        string course;
+        string description;
+        string institution;
+        string area;
+        string issuedDate;
+        string startDate;
+        string endDate;
+        uint256 hoursWorked;
+        string signatoryName;
+    }
+
+    // Estructura para información de certificado por institución  
+    struct InstitutionCertificateInfo {
+        uint256 tokenId;
+        string name;
+        string documentId;
+        string course;
+        string description;
+        string area;
+        string signatoryName;
+    }
+
+    // Estructura optimizada para datos principales (packed para gas efficiency)
+    struct CertificateData {
+        string name;
+        string documentIdentification;
+        string course;
+    }
     
-
-    uint256 public lastTokenId;
-    string private institutionName;
-
-     constructor(address owner, string memory _institutionName) ERC1155("") Ownable(owner){
-        lastTokenId = 0;
-        institutionName = _institutionName;
+    // Estructura optimizada para metadatos (packed para gas efficiency)
+    struct CertificateMetadata {
+        string description;
+        string institution;
+        string area;
+        string issuedDate;
+        string startDate;
+        string endDate;
+        uint128 hoursWorked;      
+        string signatoryName;
     }
 
+    /**
+     * Evento optimizado para más campos - máximo de información en un evento
+     * Solo 3 campos pueden ser indexed, pero todos los datos van como parámetros normales
+     */
+    event CertificateIssued(
+        uint256 indexed tokenId,
+        bytes32 indexed studentHash,      // hash(name + documentId) para búsquedas
+        bytes32 indexed institutionHash,  // hash(institution) para búsquedas
+        string name,
+        string documentId,
+        string course,
+        string institution
+    );
+    
+    // Mapeo optimizado
+    mapping(bytes32 => bool) public certificateHashes;
+    mapping(uint256 => CertificateData) public certificateMainData;
+    mapping(uint256 => CertificateMetadata) public certificateExtraData;
+    mapping(string => uint256[]) public documentToCertificates;
+    mapping(string => uint256[]) public institutionToCertificates;
+    
+    // Storage más eficiente
+    uint256 private nextTokenId;
+    string public ownerInstitution;
+
+    constructor(address initialOwner, string memory _ownerInstitution) 
+        ERC1155("") 
+        Ownable(initialOwner) 
+    {
+        nextTokenId = 1;
+        ownerInstitution = _ownerInstitution; 
+    }
+
+    /**
+     * @dev Emite un nuevo certificado con gas optimizado
+     */
     function issueCertificate(
-        string memory name, 
-        string memory documentIdentification, 
-        string memory course, 
-        string memory description
-        ) external override onlyOwner returns (uint256) {
+        CertificateIssuanceParams calldata params
+    ) external onlyOwner returns (uint256) {
+        // Hash optimizado para duplicados
+        bytes32 certHash = keccak256(abi.encodePacked(
+            params.name, params.documentId, params.course, params.institution
+        ));
+        
+        require(!certificateHashes[certHash], "El certificado ya existe");
 
-            bytes32 certHash = keccak256(abi.encodePacked(name, documentIdentification, course, description));
-            require(!certificateExists[certHash], "Certificate already exists");
-
-            uint256 tokenId = lastTokenId;
-            
-            certificates[tokenId] = Certificate(
-                name, 
-                documentIdentification, 
-                course, 
-                description
-                );
-            
-            certificatesByDocumentId[documentIdentification].push(tokenId);
-            
-            _mint(msg.sender, tokenId, 1, "");
-            
-            emit CertificateMinted(tokenId, name, documentIdentification, course, description);
-
-            certificateExists[certHash] = true;
-            
-            lastTokenId++;
-            
-            return tokenId;
+        uint256 tokenId = nextTokenId++;
+                
+        // Storage optimizado con packing
+        certificateMainData[tokenId] = CertificateData(
+            params.name,
+            params.documentId,
+            params.course
+        );
+        
+        certificateExtraData[tokenId] = CertificateMetadata(
+            params.description,
+            params.institution,
+            params.area,
+            params.issuedDate,
+            params.startDate,
+            params.endDate,
+            uint128(params.hoursWorked), // Conversión para pack
+            params.signatoryName
+        );
+        
+        // Actualizaciones de índices
+        documentToCertificates[params.documentId].push(tokenId);
+        institutionToCertificates[params.institution].push(tokenId);
+        certificateHashes[certHash] = true;
+        
+        // Mint del NFT
+        _mint(msg.sender, tokenId, 1, "");
+        
+        // Evento completo con todos los datos
+        emit CertificateIssued(
+            tokenId,
+            keccak256(abi.encodePacked(params.name, params.documentId)), // hash para búsquedas
+            keccak256(abi.encodePacked(params.institution)),             // hash para búsquedas
+            params.name,
+            params.documentId,
+            params.course,
+            params.institution
+        );
+        
+        return tokenId;
     }
 
-    function issueCertificatesBatch(
-        string[] memory names, 
-        string[] memory documentIdentifications, 
-        string memory course, 
-        string memory description
-    ) external override onlyOwner {
-        require(names.length == documentIdentifications.length, "Arrays length mismatch");
-
-        uint256[] memory ids = new uint256[](names.length);
-        uint256[] memory amount = new uint256[](names.length);
-
-        for (uint256 i = 0; i < names.length; i++) {
-            string memory name = names[i];
-            string memory documentIdentification = documentIdentifications[i];
-            bytes32 certHash = keccak256(abi.encodePacked(name, documentIdentification, course, description));
-            require(!certificateExists[certHash], "Certificate already exists");
-
-            uint256 tokenId = lastTokenId + i;
-            ids[i] = tokenId;
-            amount[i] = 1;
-            certificates[tokenId] = Certificate(name, documentIdentification, course, description);
-            certificatesByDocumentId[documentIdentification].push(tokenId);
-            emit CertificateMinted(tokenId, name, documentIdentification, course, description);
-            certificateExists[certHash] = true;
-        }
-        _mintBatch(msg.sender, ids, amount, "");
-        lastTokenId += names.length;
-    }
-
+    /**
+     * @dev Verificación optimizada
+     */
     function verifyCertificate(
-        uint256 tokenId, 
-        string memory name, 
-        string memory documentIdentification, 
-        string memory course,
-        string memory description) external override view returns (bool) {
-            Certificate memory cert = certificates[tokenId];
-            bytes32 hash = keccak256(abi.encodePacked(name, documentIdentification, course, description));
-            return hash == keccak256(abi.encodePacked(cert.name, cert.documentIdentification, cert.course, cert.description));
+        uint256 _tokenId,
+        string calldata _name,
+        string calldata _documentId,
+        string calldata _course,
+        string calldata _institution
+    ) external view returns (bool) {
+        if (!_exists(_tokenId)) return false;
+        
+        CertificateData memory mainData = certificateMainData[_tokenId];
+        CertificateMetadata memory extraData = certificateExtraData[_tokenId];
+        
+        // Comparación optimizada con hashes
+        return (
+            keccak256(bytes(mainData.name)) == keccak256(bytes(_name)) &&
+            keccak256(bytes(mainData.documentIdentification)) == keccak256(bytes(_documentId)) &&
+            keccak256(bytes(mainData.course)) == keccak256(bytes(_course)) &&
+            keccak256(bytes(extraData.institution)) == keccak256(bytes(_institution))
+        );
     }
 
-    function getCertificateMetadata(uint256 tokenId) external override view returns (Certificate memory) {
-        return certificates[tokenId];
+    /**
+     * @dev Obtiene metadatos completos
+     */
+    function getCertificateMetadata(uint256 _tokenId) 
+        external 
+        view 
+        returns (
+            string memory name,
+            string memory documentId,
+            string memory course,
+            string memory description,
+            string memory institution,
+            string memory area,
+            string memory issuedDate,
+            string memory startDate,
+            string memory endDate,
+            uint256 hoursWorked,
+            string memory signatoryName
+        ) 
+    {
+        require(_exists(_tokenId), "El certificado no existe");
+        
+        CertificateData memory mainData = certificateMainData[_tokenId];
+        CertificateMetadata memory extraData = certificateExtraData[_tokenId];
+        
+        return (
+            mainData.name,
+            mainData.documentIdentification,
+            mainData.course,
+            extraData.description,
+            extraData.institution,
+            extraData.area,
+            extraData.issuedDate,
+            extraData.startDate,
+            extraData.endDate,
+            uint256(extraData.hoursWorked), 
+            extraData.signatoryName
+        );
     }
 
-    function getCertificateIdsByDocumentId(string memory documentIdentification) external override view returns (uint256[] memory) {
-        return certificatesByDocumentId[documentIdentification];
+    /**
+     * @dev Obtiene certificados por documento con paginación
+     * @param _documentId Documento de identificación
+     * @param offset Posición inicial (0 para el primero)
+     * @param limit Máximo número de certificados a retornar
+     */
+    function getCertificatesByDocumentId(
+        string calldata _documentId,
+        uint256 offset,
+        uint256 limit
+    )
+        external
+        view
+        returns (
+            CertificateInfo[] memory certificates,
+            uint256 totalCount,
+            bool hasMore
+        )
+    {
+        uint256[] memory ids = documentToCertificates[_documentId];
+        totalCount = ids.length;
+        
+        if (offset >= totalCount) {
+            return (new CertificateInfo[](0), totalCount, false);
+        }
+        
+        uint256 end = offset + limit;
+        if (end > totalCount) {
+            end = totalCount;
+        }
+        
+        uint256 length = end - offset;
+        certificates = new CertificateInfo[](length);
+        
+        for (uint256 i = 0; i < length; i++) {
+            certificates[i] = _getCertificateInfo(ids[offset + i]);
+        }
+        
+        hasMore = end < totalCount;
+        return (certificates, totalCount, hasMore);
     }
 
-    function getInstitutionName() external override view returns (string memory) {
-        return institutionName;
+    /**
+     * @dev Obtiene certificados por institución con paginación
+     * @param _institution Nombre de la institución
+     * @param offset Posición inicial (0 para el primero)
+     * @param limit Máximo número de certificados a retornar
+     */
+    function getCertificatesByInstitution(
+        string calldata _institution,
+        uint256 offset,
+        uint256 limit
+    )
+        external
+        view
+        returns (
+            InstitutionCertificateInfo[] memory certificates,
+            uint256 totalCount,
+            bool hasMore
+        )
+    {
+        uint256[] memory ids = institutionToCertificates[_institution];
+        totalCount = ids.length;
+        
+        if (offset >= totalCount) {
+            return (new InstitutionCertificateInfo[](0), totalCount, false);
+        }
+        
+        uint256 end = offset + limit;
+        if (end > totalCount) {
+            end = totalCount;
+        }
+        
+        uint256 length = end - offset;
+        certificates = new InstitutionCertificateInfo[](length);
+        
+        for (uint256 i = 0; i < length; i++) {
+            certificates[i] = _getInstitutionCertificateInfo(ids[offset + i]);
+        }
+        
+        hasMore = end < totalCount;
+        return (certificates, totalCount, hasMore);
     }
 
+    // Funciones auxiliares
+    function getCertificateIdsByDocumentId(string calldata _documentId) 
+        external 
+        view 
+        returns (uint256[] memory) 
+    {
+        return documentToCertificates[_documentId];
+    }
+
+    function getCertificateIdsByInstitution(string calldata _institution) 
+        external 
+        view 
+        returns (uint256[] memory) 
+    {
+        return institutionToCertificates[_institution];
+    }
+
+    /**
+     * @dev Obtiene total de certificados por documento
+     */
+    function getCertificateCountByDocumentId(string calldata _documentId) 
+        external 
+        view 
+        returns (uint256) 
+    {
+        return documentToCertificates[_documentId].length;
+    }
+
+    /**
+     * @dev Obtiene total de certificados por institución
+     */
+    function getCertificateCountByInstitution(string calldata _institution) 
+        external 
+        view 
+        returns (uint256) 
+    {
+        return institutionToCertificates[_institution].length;
+    }
+
+    /**
+     * @dev Funciones de compatibilidad - obtiene todos los certificados (usar con cuidado)
+     * Solo usar cuando sepas que hay pocos certificados (< 50)
+     */
+    function getAllCertificatesByDocumentId(string calldata _documentId)
+        external
+        view
+        returns (CertificateInfo[] memory certificates)
+    {
+        uint256[] memory ids = documentToCertificates[_documentId];
+        require(ids.length <= 100, "Demasiados certificados, usar paginacion");
+        
+        certificates = new CertificateInfo[](ids.length);
+        for (uint256 i = 0; i < ids.length; i++) {
+            certificates[i] = _getCertificateInfo(ids[i]);
+        }
+        return certificates;
+    }
+
+    function getAllCertificatesByInstitution(string calldata _institution)
+        external
+        view
+        returns (InstitutionCertificateInfo[] memory certificates)
+    {
+        uint256[] memory ids = institutionToCertificates[_institution];
+        require(ids.length <= 100, "Demasiados certificados, usar paginacion");
+        
+        certificates = new InstitutionCertificateInfo[](ids.length);
+        for (uint256 i = 0; i < ids.length; i++) {
+            certificates[i] = _getInstitutionCertificateInfo(ids[i]);
+        }
+        return certificates;
+    }
+
+    function getOwnerInstitution() external view returns (string memory) {
+        return ownerInstitution;
+    }
+
+    // Funciones internas optimizadas
+    function _exists(uint256 _tokenId) internal view returns (bool) {
+        return _tokenId < nextTokenId && _tokenId >= 1;
+    }
+
+    function _getCertificateInfo(uint256 tokenId) 
+        internal 
+        view 
+        returns (CertificateInfo memory info) 
+    {
+        CertificateData memory mainData = certificateMainData[tokenId];
+        CertificateMetadata memory extraData = certificateExtraData[tokenId];
+        
+        info = CertificateInfo({
+            tokenId: tokenId,
+            name: mainData.name,
+            documentId: mainData.documentIdentification,
+            course: mainData.course,
+            description: extraData.description,
+            institution: extraData.institution,
+            area: extraData.area,
+            issuedDate: extraData.issuedDate,
+            startDate: extraData.startDate,
+            endDate: extraData.endDate,
+            hoursWorked: uint256(extraData.hoursWorked),
+            signatoryName: extraData.signatoryName
+        });
+    }
+
+    function _getInstitutionCertificateInfo(uint256 tokenId) 
+        internal 
+        view 
+        returns (InstitutionCertificateInfo memory info) 
+    {
+        CertificateData memory mainData = certificateMainData[tokenId];
+        CertificateMetadata memory extraData = certificateExtraData[tokenId];
+        
+        info = InstitutionCertificateInfo({
+            tokenId: tokenId,
+            name: mainData.name,
+            documentId: mainData.documentIdentification,
+            course: mainData.course,
+            description: extraData.description,
+            area: extraData.area,
+            signatoryName: extraData.signatoryName
+        });
+    }
 }

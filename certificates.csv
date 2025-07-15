@@ -1,0 +1,6 @@
+name,documentId,course,description,institution,area,issuedDate,startDate,endDate,hoursWorked,signatoryName
+Juan Carlos Pérez,1234567890,Desarrollo Web Avanzado,Certificado de participación en el curso de Desarrollo Web Avanzado,Instituto Tecnológico Superior Rumiñahui,Tecnología,2024-01-15,2024-01-01,2024-01-15,40,Dr. María González
+Ana Isabel García,0987654321,Diseño Gráfico Digital,Certificado de finalización del programa de Diseño Gráfico Digital,Instituto Tecnológico Superior Rumiñahui,Arte y Diseño,2024-02-20,2024-02-01,2024-02-20,60,Lic. Carlos Ruiz
+Pedro Antonio López,1122334455,Base de Datos Avanzadas,Certificado de especialización en Base de Datos Avanzadas,Instituto Tecnológico Superior Rumiñahui,Tecnología,2024-03-10,2024-03-01,2024-03-10,50,Ing. Laura Mendoza
+María Fernanda Rodríguez,5566778899,Marketing Digital,Certificado de participación en Marketing Digital,Instituto Tecnológico Superior Rumiñahui,Negocios,2024-04-15,2024-04-01,2024-04-15,35,Mgtr. Roberto Silva
+Carlos Eduardo Vargas,9988776655,Administración de Redes,Certificado de finalización en Administración de Redes,Instituto Tecnológico Superior Rumiñahui,Tecnología,2024-05-20,2024-05-01,2024-05-20,45,Ing. Sandra Torres
